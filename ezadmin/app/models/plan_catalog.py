@@ -9,7 +9,7 @@ from app.utils.database import Base
 class PlanCatalog(Base):
     __tablename__ = "plan_catalog"
     
-    code = Column(String(50), primary_key=True)  # trial|booster|pro|team
+    code = Column(String(50), primary_key=True)  # trial|pro|enterprise
     price_month_usd = Column(Numeric(10, 2), nullable=False)
     max_leads = Column(Integer)
     max_emails = Column(Integer)

@@ -347,8 +347,8 @@ class StripeWebhookHandler:
         """Map Stripe price ID to plan tier"""
         price_to_plan = {
             os.getenv("STRIPE_FREE_PRICE_ID"): PlanTier.TRIAL,
-            os.getenv("STRIPE_BASIC_PRICE_ID"): PlanTier.BOOSTER,
-            os.getenv("STRIPE_PRO_PRICE_ID"): PlanTier.PRO,
+            os.getenv("STRIPE_BASIC_PRICE_ID"): PlanTier.PRO,
+            os.getenv("STRIPE_PRO_PRICE_ID"): PlanTier.ENTERPRISE,
         }
         
         return price_to_plan.get(price_id, PlanTier.TRIAL)

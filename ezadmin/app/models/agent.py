@@ -11,9 +11,8 @@ import enum
 
 class PlanTier(str, enum.Enum):
     TRIAL = "trial"
-    BOOSTER = "booster"
     PRO = "pro"
-    TEAM = "team"
+    ENTERPRISE = "enterprise"
 
 class AgentStatus(str, enum.Enum):
     ACTIVE = "active"

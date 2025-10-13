@@ -17,6 +17,7 @@ from app.utils.database import get_db
 from app.models.agent import Agent, PlanTier
 from app.middleware.tenant_resolver import get_current_agent_id
 from app.services.billing import billing_service
+from app.utils.slug_generator import generate_unique_slug
 
 logger = logging.getLogger(__name__)
 
@@ -130,8 +131,8 @@ async def simple_checkout_redirect(plan: str):
     # Map URL plan parameter to our plan tiers  
     plan_mapping = {
         'trial': 'trial',
-        'pro': 'booster',  # Your "pro" maps to our booster price ($97)
-        'enterprise': 'pro'  # Enterprise maps to pro price ($297)
+        'pro': 'pro',  # Your "pro" maps to our basic price ($97)
+        'enterprise': 'enterprise'  # Enterprise maps to pro price ($297)
     }
     
     if plan not in plan_mapping:
@@ -139,8 +140,8 @@ async def simple_checkout_redirect(plan: str):
     
     price_ids = {
         "trial": os.getenv("STRIPE_FREE_PRICE_ID"),
-        "booster": os.getenv("STRIPE_BASIC_PRICE_ID"), 
-        "pro": os.getenv("STRIPE_PRO_PRICE_ID"),
+        "pro": os.getenv("STRIPE_BASIC_PRICE_ID"), 
+        "enterprise": os.getenv("STRIPE_PRO_PRICE_ID"),
     }
     
     mapped_plan = plan_mapping[plan]
@@ -207,8 +208,8 @@ async def create_anonymous_checkout_session(
         # Create checkout session
         price_ids = {
             "trial": os.getenv("STRIPE_FREE_PRICE_ID"),
-            "booster": os.getenv("STRIPE_BASIC_PRICE_ID"),
-            "pro": os.getenv("STRIPE_PRO_PRICE_ID"),
+            "pro": os.getenv("STRIPE_BASIC_PRICE_ID"),
+            "enterprise": os.getenv("STRIPE_PRO_PRICE_ID"),
         }
         
         price_id = price_ids.get(checkout_request.plan_tier)
@@ -291,6 +292,9 @@ async def checkout_success(
                 existing_agent.stripe_subscription_id = subscription_id
                 agent = existing_agent
             else:
+                # Generate unique slug for new agent
+                unique_slug = await generate_unique_slug(email, db)
+                
                 # Create new agent
                 import uuid
                 agent = Agent(
@@ -301,7 +305,7 @@ async def checkout_success(
                     status=AgentStatus.ACTIVE,
                     stripe_customer_id=customer_id,
                     stripe_subscription_id=subscription_id,
-                    slug=email.split('@')[0].lower().replace('.', '').replace('_', '').replace('-', '')[:20]
+                    slug=unique_slug
                 )
                 db.add(agent)
             
@@ -459,8 +463,8 @@ async def get_available_plans():
             }
         },
         {
-            "tier": "booster",
-            "name": "Booster",
+            "tier": "pro",
+            "name": "Pro",
             "price_monthly": 97,
             "price_yearly": 970,
             "stripe_price_id": os.getenv("STRIPE_BASIC_PRICE_ID"),
@@ -480,13 +484,13 @@ async def get_available_plans():
             }
         },
         {
-            "tier": "pro",
-            "name": "Professional",
+            "tier": "enterprise",
+            "name": "Enterprise",
             "price_monthly": 297,
             "price_yearly": 2970,
             "stripe_price_id": os.getenv("STRIPE_PRO_PRICE_ID"),
             "features": [
-                "Everything in Booster",
+                "Everything in Pro",
                 "Advanced AI analysis",
                 "Phone callbacks",
                 "Multiple domains",

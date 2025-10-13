@@ -11,9 +11,12 @@ from sqlalchemy import select, update
 import stripe
 import os
 import logging
+import uuid
+import re
 
 from app.utils.database import get_db
 from app.models.agent import Agent, AgentStatus, PlanTier
+from app.utils.slug_generator import generate_unique_slug
 
 logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="app/templates")
@@ -45,6 +48,20 @@ async def checkout_success(
         # Find the agent by customer ID or email
         customer = stripe.Customer.retrieve(customer_id)
         
+        # Get the actual subscription to determine the correct plan
+        subscription = stripe.Subscription.retrieve(subscription_id)
+        
+        # Determine plan tier from Stripe price ID
+        actual_plan_tier = PlanTier.TRIAL  # default
+        for item in subscription['items']['data']:
+            price_id = item['price']['id']
+            if price_id == os.getenv('STRIPE_FREE_PRICE_ID'):
+                actual_plan_tier = PlanTier.TRIAL
+            elif price_id == os.getenv('STRIPE_BASIC_PRICE_ID'):
+                actual_plan_tier = PlanTier.PRO
+            elif price_id == os.getenv('STRIPE_PRO_PRICE_ID'):
+                actual_plan_tier = PlanTier.ENTERPRISE
+        
         result = await db.execute(
             select(Agent).where(Agent.stripe_customer_id == customer_id)
         )
@@ -63,6 +80,9 @@ async def checkout_success(
                 await db.commit()
         
         if not agent:
+            # Generate unique slug for new agent
+            unique_slug = await generate_unique_slug(customer.email, db)
+            
             # Create new agent if none found
             agent = Agent(
                 email=customer.email,
@@ -70,14 +90,34 @@ async def checkout_success(
                 stripe_customer_id=customer_id,
                 stripe_subscription_id=subscription_id,
                 status=AgentStatus.ACTIVE,
-                plan_tier=PlanTier.BOOSTER,  # Default, will be updated by webhook
-                slug=customer.email.split('@')[0].lower().replace('.', '').replace('_', '').replace('-', '')[:20]
+                plan_tier=actual_plan_tier,  # Use actual plan from Stripe
+                slug=unique_slug
             )
             db.add(agent)
             await db.commit()
             await db.refresh(agent)
+        else:
+            # Update existing agent with correct plan from Stripe
+            agent.plan_tier = actual_plan_tier
+            agent.status = AgentStatus.ACTIVE
+            agent.stripe_customer_id = customer_id
+            agent.stripe_subscription_id = subscription_id
+            await db.commit()
         
-        # TODO: Send welcome email with login instructions here
+        # Send welcome email with login instructions
+        try:
+            from app.utils.email_brevo import email_service
+            email_sent = email_service.send_welcome_email(
+                to_email=customer.email,
+                to_name=customer.name or agent.name,
+                plan_tier=agent.plan_tier
+            )
+            if email_sent:
+                logger.info(f"Welcome email sent to {customer.email}")
+            else:
+                logger.warning(f"Failed to send welcome email to {customer.email}")
+        except Exception as e:
+            logger.error(f"Error sending welcome email: {e}")
         
         # Redirect to thank you page instead of trying to auto-login
         return RedirectResponse(
