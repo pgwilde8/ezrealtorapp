@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZRealtor Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="adminDashboard()">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-gray-900">EZRealtor Admin</h1>
+                    <span class="ml-3 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                        ADMIN ACCESS
+                    </span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-500">
+                        Last Updated: <span x-text="lastUpdated"></span>
+                    </div>
+                    <button @click="refreshData" class="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-700">
+                        <i class="fas fa-sync-alt mr-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- System Status Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Agents -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Agents</p>
+                        <p class="text-2xl font-bold text-gray-900" x-text="stats.totalAgents || '0'"></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm">
+                        +<span x-text="stats.newAgentsToday || '0'"></span> today
+                    </span>
+                </div>
+            </div>
+
+            <!-- Total Leads -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Leads</p>
+                        <p class="text-2xl font-bold text-gray-900" x-text="stats.totalLeads || '0'"></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm">
+                        +<span x-text="stats.newLeadsToday || '0'"></span> today
+                    </span>
+                </div>
+            </div>
+
+            <!-- AI Processing -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-purple-100 rounded-lg">
+                        <i class="fas fa-robot text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">AI Analyses</p>
+                        <p class="text-2xl font-bold text-gray-900" x-text="stats.aiAnalyses || '0'"></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-blue-600 text-sm">
+                        <span x-text="stats.aiSuccessRate || '0'"></span>% success rate
+                    </span>
+                </div>
+            </div>
+
+            <!-- Revenue -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-2 bg-yellow-100 rounded-lg">
+                        <i class="fas fa-dollar-sign text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">MRR</p>
+                        <p class="text-2xl font-bold text-gray-900">$<span x-text="stats.monthlyRevenue || '0'"></span></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm">
+                        +<span x-text="stats.revenueGrowth || '0'"></span>% this month
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Health & Recent Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            
+            <!-- System Health -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">System Health</h3>
+                </div>
+                <div class="p-6">
+                    <!-- Service Status -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">API Service</span>
+                            <span class="flex items-center text-green-600">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                Online
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Database</span>
+                            <span class="flex items-center text-green-600">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                Connected
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">OpenAI API</span>
+                            <span class="flex items-center" :class="systemHealth.openai ? 'text-green-600' : 'text-red-600'">
+                                <div class="w-2 h-2 rounded-full mr-2" :class="systemHealth.openai ? 'bg-green-500' : 'bg-red-500'"></div>
+                                <span x-text="systemHealth.openai ? 'Connected' : 'Error'"></span>
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Stripe API</span>
+                            <span class="flex items-center text-green-600">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                Connected
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600">Email Service</span>
+                            <span class="flex items-center text-green-600">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                Online
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Metrics -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Performance</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm">
+                                    <span>CPU Usage</span>
+                                    <span x-text="(systemHealth.cpu || 0) + '%'"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                    <div class="bg-blue-600 h-2 rounded-full" :style="`width: ${systemHealth.cpu || 0}%`"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm">
+                                    <span>Memory Usage</span>
+                                    <span x-text="(systemHealth.memory || 0) + '%'"></span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                    <div class="bg-green-600 h-2 rounded-full" :style="`width: ${systemHealth.memory || 0}%`"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Recent Activity</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <template x-for="activity in recentActivity" :key="activity.id">
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center" 
+                                         :class="activity.type === 'lead' ? 'bg-green-100 text-green-600' : 
+                                                activity.type === 'agent' ? 'bg-blue-100 text-blue-600' : 
+                                                activity.type === 'error' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'">
+                                        <i :class="activity.icon" class="text-sm"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-900" x-text="activity.message"></p>
+                                    <p class="text-xs text-gray-500" x-text="activity.timestamp"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Leads Chart -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Leads Over Time</h3>
+                </div>
+                <div class="p-6">
+                    <canvas id="leadsChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Revenue Growth</h3>
+                </div>
+                <div class="p-6">
+                    <canvas id="revenueChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Agents & Error Logs -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Recent Agents -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-medium text-gray-900">Recent Agents</h3>
+                    <a href="/admin/tenants" class="text-blue-600 hover:text-blue-800 text-sm">View All</a>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    <template x-for="agent in recentAgents" :key="agent.id">
+                        <div class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900" x-text="agent.name"></p>
+                                    <p class="text-sm text-gray-500" x-text="agent.email"></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-medium" x-text="agent.plan"></p>
+                                    <p class="text-xs text-gray-500" x-text="agent.joinedDate"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Error Logs -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Recent Errors</h3>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    <template x-for="error in errorLogs" :key="error.id">
+                        <div class="p-6">
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0">
+                                    <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                                        <i class="fas fa-exclamation-triangle text-red-600 text-xs"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-900" x-text="error.message"></p>
+                                    <p class="text-xs text-gray-500" x-text="error.timestamp"></p>
+                                    <p class="text-xs text-gray-400" x-text="error.source"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function adminDashboard() {
+            return {
+                lastUpdated: new Date().toLocaleTimeString(),
+                stats: {
+                    totalAgents: 0,
+                    newAgentsToday: 0,
+                    totalLeads: 0,
+                    newLeadsToday: 0,
+                    aiAnalyses: 0,
+                    aiSuccessRate: 0,
+                    monthlyRevenue: 0,
+                    revenueGrowth: 0
+                },
+                systemHealth: {
+                    openai: true,
+                    cpu: 45,
+                    memory: 62
+                },
+                recentActivity: [],
+                recentAgents: [],
+                errorLogs: [],
+
+                async init() {
+                    await this.loadDashboardData();
+                    this.initCharts();
+                    
+                    // Auto-refresh every 30 seconds
+                    setInterval(() => {
+                        this.refreshData();
+                    }, 30000);
+                },
+
+                async loadDashboardData() {
+                    try {
+                        // Load dashboard stats
+                        const response = await fetch('/admin/stats');
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.stats = { ...this.stats, ...data };
+                        }
+
+                        // Load recent activity
+                        this.recentActivity = [
+                            {
+                                id: 1,
+                                type: 'lead',
+                                icon: 'fas fa-user-plus',
+                                message: 'New lead captured from John Doe',
+                                timestamp: '2 minutes ago'
+                            },
+                            {
+                                id: 2,
+                                type: 'agent',
+                                icon: 'fas fa-crown',
+                                message: 'Agent upgraded to Pro plan',
+                                timestamp: '15 minutes ago'
+                            },
+                            {
+                                id: 3,
+                                type: 'ai',
+                                icon: 'fas fa-robot',
+                                message: 'AI analysis completed for 5 leads',
+                                timestamp: '1 hour ago'
+                            }
+                        ];
+
+                        // Load recent agents
+                        this.recentAgents = [
+                            {
+                                id: 1,
+                                name: 'Sarah Johnson',
+                                email: 'sarah@realty.com',
+                                plan: 'Pro',
+                                joinedDate: 'Today'
+                            },
+                            {
+                                id: 2,
+                                name: 'Mike Chen',
+                                email: 'mike@homes.com',
+                                plan: 'Trial',
+                                joinedDate: 'Yesterday'
+                            }
+                        ];
+
+                        // Load error logs
+                        this.errorLogs = [
+                            {
+                                id: 1,
+                                message: 'OpenAI API rate limit exceeded',
+                                timestamp: '5 minutes ago',
+                                source: 'AI Lead Processor'
+                            },
+                            {
+                                id: 2,
+                                message: 'Failed to send notification email',
+                                timestamp: '1 hour ago',
+                                source: 'Email Service'
+                            }
+                        ];
+
+                    } catch (error) {
+                        console.error('Failed to load dashboard data:', error);
+                    }
+                },
+
+                async refreshData() {
+                    await this.loadDashboardData();
+                    this.lastUpdated = new Date().toLocaleTimeString();
+                },
+
+                initCharts() {
+                    // Leads Chart
+                    const leadsCtx = document.getElementById('leadsChart').getContext('2d');
+                    new Chart(leadsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                            datasets: [{
+                                label: 'Leads',
+                                data: [12, 19, 8, 15, 22, 18, 25],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+
+                    // Revenue Chart
+                    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                    new Chart(revenueCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                            datasets: [{
+                                label: 'Revenue ($)',
+                                data: [2400, 3200, 2800, 4100, 3900, 4500],
+                                backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                                borderColor: 'rgb(34, 197, 94)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    </script>
+</body>
+</html>

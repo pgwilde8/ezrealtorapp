@@ -34,6 +34,11 @@ class Agent(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
+    # Authentication fields
+    password_hash = Column(String(255))  # bcrypt hash
+    last_login_at = Column(DateTime(timezone=True))
+    email_verified = Column(Boolean, default=False)
+    
     # Stripe integration fields
     stripe_customer_id = Column(String(100), index=True)
     stripe_subscription_id = Column(String(100), index=True)

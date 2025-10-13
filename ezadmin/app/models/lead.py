@@ -56,6 +56,15 @@ class Lead(Base):
     # AI Analysis
     ai_summary = Column(Text)
     ai_score = Column(Integer)  # 0-100 lead quality score
+
+    # Add to lead.py
+    ai_intent = Column(String(50))  # buyer|investor|browsing  
+    ai_urgency = Column(Integer)    # 1-10 urgency score
+    ai_timeline = Column(String(50)) # immediate|3months|6months|exploring
+    ai_budget_min = Column(Integer)  # Detected budget range
+    ai_budget_max = Column(Integer)
+    ai_motivation = Column(String(100)) # relocation|upgrade|downsize
+    ai_priority = Column(String(20))    # hot|warm|cold
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtor Login - EZRealtor.app</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        [x-cloak] { display: none !important; }
+        .bg-gradient-realtor {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1d4ed8 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50" x-data="loginApp()" x-cloak>
+    
+    <!-- Header -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">
+                        <i class="fas fa-home mr-2"></i>EZRealtor.app
+                    </h1>
+                    <span class="ml-4 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                        Realtor Login
+                    </span>
+                </div>
+                <div class="text-sm text-gray-500">
+                    Need help? <a href="mailto:support@ezrealtor.app" class="text-blue-600 hover:text-blue-800">Contact Support</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            
+            <!-- Login Form Card -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                
+                <!-- Header -->
+                <div class="text-center mb-8">
+                    <div class="mx-auto h-16 w-16 bg-gradient-realtor rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-user-circle text-white text-2xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900">Welcome Back</h2>
+                    <p class="mt-2 text-gray-600">Sign in to your realtor dashboard</p>
+                </div>
+
+                <!-- Login Form -->
+                <form @submit.prevent="handleLogin" class="space-y-6">
+                    
+                    <!-- Email Field -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-envelope mr-2 text-gray-400"></i>Email Address
+                        </label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            x-model="form.email"
+                            required
+                            class="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="your@email.com"
+                            :disabled="loading"
+                        >
+                    </div>
+
+                    <!-- Password Field -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-lock mr-2 text-gray-400"></i>Password
+                        </label>
+                        <div class="relative">
+                            <input 
+                                :type="showPassword ? 'text' : 'password'" 
+                                id="password" 
+                                x-model="form.password"
+                                required
+                                class="w-full px-3 py-3 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="••••••••"
+                                :disabled="loading"
+                            >
+                            <button 
+                                type="button"
+                                @click="showPassword = !showPassword"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                            >
+                                <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-gray-400 hover:text-gray-600"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input 
+                                id="remember" 
+                                type="checkbox" 
+                                x-model="form.remember"
+                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            >
+                            <label for="remember" class="ml-2 block text-sm text-gray-700">
+                                Remember me
+                            </label>
+                        </div>
+                        <button 
+                            type="button"
+                            @click="showForgotPassword = true"
+                            class="text-sm text-blue-600 hover:text-blue-800"
+                        >
+                            Forgot password?
+                        </button>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div x-show="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md" x-text="error"></div>
+
+                    <!-- Success Message -->
+                    <div x-show="success" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md" x-text="success"></div>
+
+                    <!-- Login Button -->
+                    <button 
+                        type="submit"
+                        :disabled="loading"
+                        :class="loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-realtor hover:shadow-lg'"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                    >
+                        <span x-show="!loading" class="flex items-center">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            Sign In to Dashboard
+                        </span>
+                        <span x-show="loading" class="flex items-center">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>
+                            Signing In...
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Magic Link Option -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600 mb-4">Or sign in with magic link</p>
+                        <button 
+                            @click="sendMagicLink"
+                            :disabled="loading || !form.email"
+                            class="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        >
+                            <i class="fas fa-magic mr-2"></i>
+                            Send Magic Link
+                        </button>
+                        <p class="text-xs text-gray-500 mt-2">We'll email you a secure link to sign in</p>
+                    </div>
+                </div>
+
+                <!-- Support -->
+                <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+                    <p class="text-sm text-gray-600">
+                        New to EZRealtor.app? 
+                        <a href="https://ezrealtor.app/pricing" class="text-blue-600 hover:text-blue-800 font-medium">Start your free trial</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Features Preview -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 text-center">What's in your dashboard:</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div class="flex items-center text-gray-700">
+                        <i class="fas fa-users text-blue-500 mr-3"></i>
+                        Lead Management
+                    </div>
+                    <div class="flex items-center text-gray-700">
+                        <i class="fas fa-robot text-purple-500 mr-3"></i>
+                        AI Insights
+                    </div>
+                    <div class="flex items-center text-gray-700">
+                        <i class="fas fa-chart-line text-green-500 mr-3"></i>
+                        Analytics
+                    </div>
+                    <div class="flex items-center text-gray-700">
+                        <i class="fas fa-palette text-orange-500 mr-3"></i>
+                        Site Customization
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div x-show="showForgotPassword" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Reset Password</h3>
+                    <button @click="showForgotPassword = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form @submit.prevent="sendPasswordReset">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input 
+                            type="email" 
+                            x-model="resetEmail"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="your@email.com"
+                        >
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button 
+                            type="button"
+                            @click="showForgotPassword = false"
+                            class="px-4 py-2 text-gray-500 border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                            Send Reset Link
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loginApp() {
+            return {
+                form: {
+                    email: '',
+                    password: '',
+                    remember: false
+                },
+                showPassword: false,
+                showForgotPassword: false,
+                resetEmail: '',
+                loading: false,
+                error: '',
+                success: '',
+
+                async handleLogin() {
+                    this.error = '';
+                    this.success = '';
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch('/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(this.form)
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.success = 'Login successful! Redirecting to your dashboard...';
+                            // Redirect to agent dashboard
+                            setTimeout(() => {
+                                window.location.href = data.redirect_url || '/dashboard';
+                            }, 1500);
+                        } else {
+                            this.error = data.detail || 'Invalid email or password';
+                        }
+                    } catch (error) {
+                        this.error = 'Network error. Please try again.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async sendMagicLink() {
+                    if (!this.form.email) {
+                        this.error = 'Please enter your email address first';
+                        return;
+                    }
+
+                    this.error = '';
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch('/auth/magic-link', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email: this.form.email })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.success = 'Magic link sent! Check your email for the login link.';
+                        } else {
+                            this.error = data.detail || 'Failed to send magic link';
+                        }
+                    } catch (error) {
+                        this.error = 'Network error. Please try again.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async sendPasswordReset() {
+                    this.error = '';
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch('/auth/reset-password', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ email: this.resetEmail })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            this.success = 'Password reset link sent to your email!';
+                            this.showForgotPassword = false;
+                            this.resetEmail = '';
+                        } else {
+                            this.error = data.detail || 'Failed to send reset link';
+                        }
+                    } catch (error) {
+                        this.error = 'Network error. Please try again.';
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

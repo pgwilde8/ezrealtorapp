@@ -19,15 +19,13 @@ class BrevoEmailService:
         if not self.api_key:
             logger.warning("BREVO_API_KEY not configured - emails will not be sent")
     
-    def send_welcome_email(self, to_email: str, to_name: str, plan_tier: str) -> bool:
-        """Send welcome email with login instructions"""
-        
-        if not self.api_key:
-            logger.warning(f"Cannot send email to {to_email} - Brevo API key not configured")
-            return False
-        
-        # Create login URL - we'll build this out next
-        login_url = f"https://login.ezrealtor.app?email={to_email}&welcome=true"
+    async def send_welcome_email(self, to_email: str, to_name: str, plan_tier: str = "trial", agent_slug: str = None):
+        """Send welcome email to new customer"""
+        # Create login URL with redirect to their dashboard
+        if agent_slug:
+            login_url = f"https://login.ezrealtor.app?redirect_to={agent_slug}"
+        else:
+            login_url = "https://login.ezrealtor.app"
         
         # Plan-specific content
         plan_benefits = {
@@ -202,5 +200,331 @@ class BrevoEmailService:
             logger.error(f"Error sending email to {to_email}: {e}")
             return False
 
+    def send_magic_link_email(self, to_email: str, agent_name: str, magic_link: str) -> bool:
+        """Send magic link for passwordless login"""
+        
+        if not self.api_key:
+            logger.warning(f"Cannot send magic link to {to_email} - Brevo API key not configured")
+            return False
+        
+        subject = "🔐 Your EZRealtor.app Login Link"
+        
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #2563eb;">🏠 EZRealtor.app</h1>
+                </div>
+                
+                <h2>Hi {agent_name}!</h2>
+                
+                <p>Click the button below to securely sign in to your realtor dashboard:</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{magic_link}" 
+                       style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); 
+                              color: white; 
+                              padding: 15px 30px; 
+                              text-decoration: none; 
+                              border-radius: 8px; 
+                              font-weight: bold;
+                              display: inline-block;">
+                        🔓 Sign In to Dashboard
+                    </a>
+                </div>
+                
+                <p style="color: #666; font-size: 14px;">
+                    This link will expire in 15 minutes for security reasons.
+                </p>
+                
+                <p style="color: #666; font-size: 14px;">
+                    If you didn't request this login link, please ignore this email.
+                </p>
+                
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                
+                <p style="color: #888; font-size: 12px; text-align: center;">
+                    © 2025 EZRealtor.app - AI-Powered Lead Generation for Realtors
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Hi {agent_name}!
+
+        Click the link below to securely sign in to your realtor dashboard:
+        
+        {magic_link}
+        
+        This link will expire in 15 minutes for security reasons.
+        
+        If you didn't request this login link, please ignore this email.
+        
+        © 2025 EZRealtor.app - AI-Powered Lead Generation for Realtors
+        """
+        
+        headers = {
+            "accept": "application/json",
+            "api-key": self.api_key,
+            "content-type": "application/json"
+        }
+        
+        data = {
+            "sender": {
+                "name": self.from_name,
+                "email": self.from_email
+            },
+            "to": [
+                {
+                    "email": to_email,
+                    "name": agent_name
+                }
+            ],
+            "subject": subject,
+            "htmlContent": html_content,
+            "textContent": text_content
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/smtp/email",
+                headers=headers,
+                json=data,
+                timeout=10
+            )
+            
+            if response.status_code == 201:
+                logger.info(f"Magic link email sent successfully to {to_email}")
+                return True
+            else:
+                logger.error(f"Failed to send magic link to {to_email}: {response.status_code} {response.text}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error sending magic link to {to_email}: {e}")
+            return False
+
+    def send_password_reset_email(self, to_email: str, agent_name: str, reset_link: str) -> bool:
+        """Send password reset link"""
+        
+        if not self.api_key:
+            logger.warning(f"Cannot send reset link to {to_email} - Brevo API key not configured")
+            return False
+        
+        subject = "🔑 Reset Your EZRealtor.app Password"
+        
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #2563eb;">🏠 EZRealtor.app</h1>
+                </div>
+                
+                <h2>Hi {agent_name}!</h2>
+                
+                <p>We received a request to reset your password. Click the button below to create a new password:</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{reset_link}" 
+                       style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); 
+                              color: white; 
+                              padding: 15px 30px; 
+                              text-decoration: none; 
+                              border-radius: 8px; 
+                              font-weight: bold;
+                              display: inline-block;">
+                        🔑 Reset Password
+                    </a>
+                </div>
+                
+                <p style="color: #666; font-size: 14px;">
+                    This link will expire in 1 hour for security reasons.
+                </p>
+                
+                <p style="color: #666; font-size: 14px;">
+                    If you didn't request a password reset, please ignore this email. Your password won't be changed.
+                </p>
+                
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                
+                <p style="color: #888; font-size: 12px; text-align: center;">
+                    © 2025 EZRealtor.app - AI-Powered Lead Generation for Realtors
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Hi {agent_name}!
+
+        We received a request to reset your password. Click the link below to create a new password:
+        
+        {reset_link}
+        
+        This link will expire in 1 hour for security reasons.
+        
+        If you didn't request a password reset, please ignore this email. Your password won't be changed.
+        
+        © 2025 EZRealtor.app - AI-Powered Lead Generation for Realtors
+        """
+        
+        headers = {
+            "accept": "application/json",
+            "api-key": self.api_key,
+            "content-type": "application/json"
+        }
+        
+        data = {
+            "sender": {
+                "name": self.from_name,
+                "email": self.from_email
+            },
+            "to": [
+                {
+                    "email": to_email,
+                    "name": agent_name
+                }
+            ],
+            "subject": subject,
+            "htmlContent": html_content,
+            "textContent": text_content
+        }
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/smtp/email",
+                headers=headers,
+                json=data,
+                timeout=10
+            )
+            
+            if response.status_code == 201:
+                logger.info(f"Password reset email sent successfully to {to_email}")
+                return True
+            else:
+                logger.error(f"Failed to send reset email to {to_email}: {response.status_code} {response.text}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error sending reset email to {to_email}: {e}")
+            return False
+
+    async def send_magic_link_email(self, to_email: str, to_name: str, magic_token: str, agent_slug: str = None):
+        """Send magic login link email"""
+        try:
+            # Create magic link URL
+            if agent_slug:
+                magic_url = f"https://login.ezrealtor.app/magic?token={magic_token}&redirect_to={agent_slug}"
+            else:
+                magic_url = f"https://login.ezrealtor.app/magic?token={magic_token}"
+            
+            subject = "Your EZRealtor.app Login Link"
+            
+            # HTML version
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #2c5aa0, #1e3a72); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                    .content {{ background: #f8f9fa; padding: 30px; }}
+                    .button {{ display: inline-block; background: #2c5aa0; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }}
+                    .footer {{ background: #e9ecef; padding: 20px; text-align: center; font-size: 14px; color: #666; border-radius: 0 0 10px 10px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🏠 EZRealtor.app</h1>
+                        <p>Your secure login link is ready</p>
+                    </div>
+                    
+                    <div class="content">
+                        <h2>Hi {to_name}!</h2>
+                        
+                        <p>Click the button below to securely log in to your EZRealtor.app dashboard:</p>
+                        
+                        <div style="text-align: center;">
+                            <a href="{magic_url}" class="button">🔐 Login to Dashboard</a>
+                        </div>
+                        
+                        <p><strong>This link expires in 15 minutes</strong> for your security.</p>
+                        
+                        <p>If you didn't request this login link, you can safely ignore this email.</p>
+                        
+                        <p>Need help? Contact us at <a href="mailto:support@ezrealtor.app">support@ezrealtor.app</a></p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>EZRealtor.app - AI-Powered Lead Engine for Realtors</p>
+                        <p>This login link expires in 15 minutes for your security</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            # Plain text version
+            text_content = f"""
+            EZRealtor.app - Your Login Link
+            
+            Hi {to_name}!
+            
+            Click the link below to securely log in to your dashboard:
+            {magic_url}
+            
+            This link expires in 15 minutes for your security.
+            
+            If you didn't request this login link, you can safely ignore this email.
+            
+            Need help? Contact us at support@ezrealtor.app
+            
+            EZRealtor.app - AI-Powered Lead Engine for Realtors
+            """
+            
+            headers = {
+                "accept": "application/json",
+                "api-key": self.api_key,
+                "content-type": "application/json"
+            }
+            
+            data = {
+                "sender": {"name": "EZRealtor.app", "email": "login@ezrealtor.app"},
+                "to": [{"email": to_email, "name": to_name}],
+                "subject": subject,
+                "htmlContent": html_content,
+                "textContent": text_content
+            }
+            
+            response = await self.session.post(
+                f"{self.base_url}/smtp/email",
+                headers=headers,
+                json=data,
+                timeout=10
+            )
+            
+            if response.status_code == 201:
+                logger.info(f"Magic link email sent successfully to {to_email}")
+                return True
+            else:
+                logger.error(f"Failed to send magic link to {to_email}: {response.status_code} {response.text}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error sending magic link to {to_email}: {e}")
+            return False
+
 # Global instance
 email_service = BrevoEmailService()
+
+# Alias for compatibility with auth API
+send_email = email_service.send_notification_email
+EmailService = BrevoEmailService

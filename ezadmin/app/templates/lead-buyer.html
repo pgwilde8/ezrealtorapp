@@ -88,47 +88,106 @@
 
         <!-- Lead Capture Form -->
         <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8" x-data="buyerForm()">
+            
+            <!-- Progress Indicator -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                    <span :class="step >= 1 ? 'text-primary font-medium' : ''">Contact Info</span>
+                    <span :class="step >= 2 ? 'text-primary font-medium' : ''">Property Preferences</span>
+                    <span :class="step >= 3 ? 'text-primary font-medium' : ''">AI Analysis</span>
+                </div>
+                <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
+                         :style="`width: ${(step / 3) * 100}%`"></div>
+                </div>
+            </div>
+
             <form @submit.prevent="submitForm()" class="space-y-6">
-                <!-- Personal Information -->
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                        <input type="text" x-model="form.full_name" required 
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                
+                <!-- Step 1: Contact Information -->
+                <div x-show="step === 1" x-transition class="space-y-6">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Let's Get Started</h2>
+                        <p class="text-gray-600">First, we'll need some basic information to personalize your experience</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                        <input type="email" x-model="form.email" required 
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                            <input type="text" x-model="form.full_name" required 
+                                   @blur="validateField('full_name')"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            <p x-show="errors.full_name" class="mt-1 text-sm text-red-600" x-text="errors.full_name"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                            <input type="email" x-model="form.email" required 
+                                   @blur="validateField('email')"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            <p x-show="errors.email" class="mt-1 text-sm text-red-600" x-text="errors.email"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                            <input type="tel" x-model="form.phone" required 
+                                   @input="formatPhone()"
+                                   @blur="validateField('phone')"
+                                   placeholder="(555) 123-4567"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
+                            <p x-show="errors.phone" class="mt-1 text-sm text-red-600" x-text="errors.phone"></p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Best Time to Contact</label>
+                            <select x-model="form.contact_preference" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                                <option value="">Any time</option>
+                                <option value="morning">Morning (8am-12pm)</option>
+                                <option value="afternoon">Afternoon (12pm-5pm)</option>
+                                <option value="evening">Evening (5pm-8pm)</option>
+                                <option value="weekend">Weekends only</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                        <input type="tel" x-model="form.phone" required 
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
-                        <select x-model="form.budget_range" 
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
-                            <option value="">Select Budget</option>
-                            <option value="under_200k">Under $200,000</option>
-                            <option value="200k_400k">$200,000 - $400,000</option>
-                            <option value="400k_600k">$400,000 - $600,000</option>
-                            <option value="600k_800k">$600,000 - $800,000</option>
-                            <option value="800k_1m">$800,000 - $1,000,000</option>
-                            <option value="over_1m">Over $1,000,000</option>
-                        </select>
+                    
+                    <div class="flex justify-end">
+                        <button type="button" @click="nextStep()" 
+                                :disabled="!canProceedStep1()"
+                                class="btn-primary disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-lg transition duration-200">
+                            Continue to Preferences →
+                        </button>
                     </div>
                 </div>
 
-                <!-- Property Preferences -->
-                <div class="border-t pt-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Preferences</h3>
-                    <div class="grid md:grid-cols-3 gap-4">
+                <!-- Step 2: Property Preferences -->
+                <div x-show="step === 2" x-transition class="space-y-6">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Your Dream Home Details</h2>
+                        <p class="text-gray-600">Help us understand what you're looking for</p>
+                    </div>
+                    
+                    <!-- Budget Range with AI Insights -->
+                    <div class="bg-blue-50 p-6 rounded-lg">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Budget Range *</label>
+                        <select x-model="form.budget_range" required @change="getBudgetInsights()"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary mb-3">
+                            <option value="">Select Your Budget</option>
+                            <option value="under_300k">Under $300,000</option>
+                            <option value="300k_500k">$300,000 - $500,000</option>
+                            <option value="500k_750k">$500,000 - $750,000</option>
+                            <option value="750k_1m">$750,000 - $1,000,000</option>
+                            <option value="1m_1.5m">$1,000,000 - $1,500,000</option>
+                            <option value="over_1.5m">Over $1,500,000</option>
+                        </select>
+                        <div x-show="budgetInsights" x-transition class="text-sm text-blue-700 bg-blue-100 p-3 rounded">
+                            <span x-text="budgetInsights"></span>
+                        </div>
+                    </div>
+
+                    <!-- Property Details -->
+                    <div class="grid md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
                             <select x-model="form.bedrooms" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
                                 <option value="">Any</option>
                                 <option value="1">1+</option>
                                 <option value="2">2+</option>
@@ -140,7 +199,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Bathrooms</label>
                             <select x-model="form.bathrooms" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
                                 <option value="">Any</option>
                                 <option value="1">1+</option>
                                 <option value="2">2+</option>
@@ -151,90 +210,154 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
                             <select x-model="form.property_type" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
                                 <option value="">Any Type</option>
-                                <option value="house">House</option>
-                                <option value="condo">Condo</option>
+                                <option value="single_family">Single Family Home</option>
+                                <option value="condo">Condominium</option>
                                 <option value="townhouse">Townhouse</option>
-                                <option value="apartment">Apartment</option>
+                                <option value="duplex">Duplex</option>
+                                <option value="land">Land/Lot</option>
+                                <option value="commercial">Commercial</option>
                             </select>
                         </div>
                     </div>
-                </div>
 
-                <!-- Location Preferences -->
-                <div class="border-t pt-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Location & Lifestyle</h3>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Areas/Cities</label>
-                            <textarea x-model="form.preferred_areas" rows="3" 
-                                      placeholder="e.g., Downtown, Suburb neighborhoods, specific zip codes..."
-                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Lifestyle Priorities</label>
-                            <div class="space-y-2">
-                                <label class="flex items-center">
-                                    <input type="checkbox" x-model="form.priorities" value="schools" class="mr-2">
-                                    <span class="text-sm">Good School Districts</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" x-model="form.priorities" value="commute" class="mr-2">
-                                    <span class="text-sm">Short Commute</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" x-model="form.priorities" value="amenities" class="mr-2">
-                                    <span class="text-sm">Shopping & Dining</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="checkbox" x-model="form.priorities" value="parks" class="mr-2">
-                                    <span class="text-sm">Parks & Recreation</span>
-                                </label>
+                    <!-- Location with Smart Suggestions -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Areas/Cities *</label>
+                        <textarea x-model="form.preferred_areas" required rows="3" 
+                                  @input="getLocationSuggestions()"
+                                  placeholder="Enter neighborhoods, cities, zip codes, or landmarks you're interested in..."
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"></textarea>
+                        <div x-show="locationSuggestions.length > 0" class="mt-2">
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="suggestion in locationSuggestions" :key="suggestion">
+                                    <button type="button" @click="addLocationSuggestion(suggestion)"
+                                            class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-primary hover:text-white transition-colors">
+                                        <span x-text="suggestion"></span>
+                                    </button>
+                                </template>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- AI Assistant Questions -->
-                <div class="border-t pt-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Tell Us More (AI Assistant)</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">What's most important in your next home?</label>
-                            <textarea x-model="form.important_features" rows="3" 
-                                      placeholder="Describe what features, amenities, or characteristics matter most to you..."
-                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                    <!-- Timeline with Urgency Detection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Timeline to Purchase *</label>
+                        <select x-model="form.timeline" required @change="getTimelineInsights()"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">Select Timeline</option>
+                            <option value="immediately">Ready to buy now (ASAP)</option>
+                            <option value="1_month">Within 1 month</option>
+                            <option value="1_3_months">1-3 months</option>
+                            <option value="3_6_months">3-6 months</option>
+                            <option value="6_12_months">6-12 months</option>
+                            <option value="over_year">More than a year</option>
+                            <option value="just_browsing">Just browsing/researching</option>
+                        </select>
+                        <div x-show="timelineInsights" x-transition class="mt-2 text-sm text-orange-700 bg-orange-100 p-3 rounded">
+                            <span x-text="timelineInsights"></span>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Timeline to Purchase</label>
-                            <select x-model="form.timeline" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="">Select Timeline</option>
-                                <option value="asap">Ready to buy immediately</option>
-                                <option value="1_3_months">1-3 months</option>
-                                <option value="3_6_months">3-6 months</option>
-                                <option value="6_12_months">6-12 months</option>
-                                <option value="over_year">More than a year</option>
-                            </select>
-                        </div>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button type="button" @click="previousStep()" 
+                                class="bg-gray-500 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 hover:bg-gray-600">
+                            ← Back
+                        </button>
+                        <button type="button" @click="nextStep()" 
+                                :disabled="!canProceedStep2()"
+                                class="btn-primary disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-lg transition duration-200">
+                            Continue to AI Analysis →
+                        </button>
                     </div>
                 </div>
 
-                <!-- Submit Button -->
-                <div class="pt-6">
-                    <button type="submit" 
-                            :disabled="loading"
-                            class="w-full btn-primary disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
-                        <span x-show="!loading">
-                            {% if agent and agent.submit_button_text %}
-                                {{ agent.submit_button_text }}
-                            {% else %}
-                                Get My Personalized Home Matches
-                            {% endif %}
-                        </span>
-                        <span x-show="loading">Processing with AI...</span>
-                    </button>
+                <!-- Step 3: AI Analysis & Priorities -->
+                <div x-show="step === 3" x-transition class="space-y-6">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">AI-Powered Matching</h2>
+                        <p class="text-gray-600">Our AI will analyze your responses to find perfect property matches</p>
+                    </div>
+
+                    <!-- Lifestyle Priorities -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-4">What matters most to you? (Select all that apply)</label>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <template x-for="priority in priorityOptions" :key="priority.value">
+                                <label class="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                                       :class="form.priorities.includes(priority.value) ? 'border-primary bg-blue-50' : 'border-gray-300'">
+                                    <input type="checkbox" x-model="form.priorities" :value="priority.value" class="mr-3 text-primary">
+                                    <div>
+                                        <span class="font-medium" x-text="priority.label"></span>
+                                        <p class="text-sm text-gray-600" x-text="priority.description"></p>
+                                    </div>
+                                </label>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- AI Questions -->
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">What's driving your move? *</label>
+                            <textarea x-model="form.motivation" required rows="3" 
+                                      placeholder="e.g., new job, growing family, downsizing, investment opportunity..."
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Describe your ideal home and lifestyle</label>
+                            <textarea x-model="form.important_features" rows="4" 
+                                      placeholder="Tell us about your dream home, must-have features, deal-breakers, or anything else that's important to you..."
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none"></textarea>
+                        </div>
+
+                        <!-- Financing Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Financing Status</label>
+                            <select x-model="form.financing_status" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                                <option value="">Select Status</option>
+                                <option value="pre_approved">Pre-approved for mortgage</option>
+                                <option value="need_pre_approval">Need pre-approval assistance</option>
+                                <option value="cash_buyer">Cash buyer</option>
+                                <option value="need_financing_info">Need financing information</option>
+                                <option value="first_time_buyer">First-time home buyer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-6">
+                        <div class="flex justify-between">
+                            <button type="button" @click="previousStep()" 
+                                    class="bg-gray-500 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 hover:bg-gray-600">
+                                ← Back
+                            </button>
+                            <button type="submit" 
+                                    :disabled="loading || !canSubmit()"
+                                    class="btn-primary disabled:bg-gray-400 text-white font-semibold py-4 px-12 rounded-lg transition duration-200 relative">
+                                <span x-show="!loading" class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a9 9 0 117.072 0l-.548.547A3.374 3.374 0 0014.846 21H9.154a3.374 3.374 0 00-2.53-1.121l-.548-.547z"></path>
+                                    </svg>
+                                    {% if agent and agent.submit_button_text %}
+                                        {{ agent.submit_button_text }}
+                                    {% else %}
+                                        Get AI-Powered Property Matches
+                                    {% endif %}
+                                </span>
+                                <span x-show="loading" class="flex items-center">
+                                    <svg class="animate-spin w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    AI is analyzing your preferences...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </form>
 
@@ -296,67 +419,262 @@
     <script>
         function buyerForm() {
             return {
+                step: 1,
                 loading: false,
                 success: false,
+                errors: {},
+                budgetInsights: '',
+                timelineInsights: '',
+                locationSuggestions: [],
+                
+                priorityOptions: [
+                    { value: 'schools', label: 'School Quality', description: 'Top-rated school districts' },
+                    { value: 'commute', label: 'Short Commute', description: 'Easy access to work/downtown' },
+                    { value: 'amenities', label: 'Shopping & Dining', description: 'Restaurants, malls, entertainment' },
+                    { value: 'parks', label: 'Parks & Recreation', description: 'Outdoor spaces and activities' },
+                    { value: 'safety', label: 'Safe Neighborhood', description: 'Low crime rates, family-friendly' },
+                    { value: 'walkability', label: 'Walkable Area', description: 'Walk to daily needs' },
+                    { value: 'investment', label: 'Investment Potential', description: 'Property value appreciation' },
+                    { value: 'quiet', label: 'Quiet Location', description: 'Peaceful, low traffic' },
+                    { value: 'modern', label: 'Modern Features', description: 'Updated finishes and technology' },
+                    { value: 'space', label: 'Outdoor Space', description: 'Yard, patio, or balcony' }
+                ],
+                
                 form: {
                     full_name: '',
                     email: '',
                     phone: '',
+                    contact_preference: '',
                     budget_range: '',
                     bedrooms: '',
                     bathrooms: '',
                     property_type: '',
                     preferred_areas: '',
-                    priorities: [],
-                    important_features: '',
                     timeline: '',
+                    priorities: [],
+                    motivation: '',
+                    important_features: '',
+                    financing_status: '',
                     lead_type: 'buyer_interest'
+                },
+                
+                // Validation methods
+                validateField(field) {
+                    this.errors[field] = '';
+                    
+                    switch(field) {
+                        case 'full_name':
+                            if (!this.form.full_name || this.form.full_name.length < 2) {
+                                this.errors.full_name = 'Please enter your full name';
+                            }
+                            break;
+                        case 'email':
+                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                            if (!emailRegex.test(this.form.email)) {
+                                this.errors.email = 'Please enter a valid email address';
+                            }
+                            break;
+                        case 'phone':
+                            const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+                            if (!phoneRegex.test(this.form.phone)) {
+                                this.errors.phone = 'Please enter a valid phone number';
+                            }
+                            break;
+                    }
+                },
+                
+                // Phone formatting
+                formatPhone() {
+                    let phone = this.form.phone.replace(/\D/g, '');
+                    if (phone.length >= 6) {
+                        phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                    } else if (phone.length >= 3) {
+                        phone = phone.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+                    }
+                    this.form.phone = phone;
+                },
+                
+                // Step validation
+                canProceedStep1() {
+                    return this.form.full_name && 
+                           this.form.email && 
+                           this.form.phone && 
+                           !this.errors.full_name && 
+                           !this.errors.email && 
+                           !this.errors.phone;
+                },
+                
+                canProceedStep2() {
+                    return this.form.budget_range && 
+                           this.form.preferred_areas && 
+                           this.form.timeline;
+                },
+                
+                canSubmit() {
+                    return this.canProceedStep1() && 
+                           this.canProceedStep2() && 
+                           this.form.motivation;
+                },
+                
+                // Navigation
+                nextStep() {
+                    if (this.step < 3) {
+                        this.step++;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                },
+                
+                previousStep() {
+                    if (this.step > 1) {
+                        this.step--;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                },
+                
+                // AI Insights
+                getBudgetInsights() {
+                    const insights = {
+                        'under_300k': '💡 Great entry-level range! Consider FHA loans for lower down payments.',
+                        '300k_500k': '🏡 Popular range with many options. Consider pre-approval to strengthen offers.',
+                        '500k_750k': '✨ Premium range with luxury features. Competitive market - be ready to act fast.',
+                        '750k_1m': '🏰 Luxury market. Cash offers often preferred. Consider jumbo loan requirements.',
+                        '1m_1.5m': '💎 High-end luxury. Market moves slower, more room for negotiation.',
+                        'over_1.5m': '🎯 Ultra-luxury segment. Unique properties, longer search process expected.'
+                    };
+                    this.budgetInsights = insights[this.form.budget_range] || '';
+                },
+                
+                getTimelineInsights() {
+                    const insights = {
+                        'immediately': '🚨 HOT LEAD! Fast market - pre-approval essential. We can start showings this week.',
+                        '1_month': '⚡ Quick timeline! Let\'s get pre-approved and start searching immediately.',
+                        '1_3_months': '🎯 Perfect timing! Allows for thorough search while staying competitive.',
+                        '3_6_months': '📅 Good planning window. Time to explore neighborhoods and get pre-approved.',
+                        '6_12_months': '🧭 Strategic timeline. We can monitor market trends and prepare.',
+                        'over_year': '📊 Long-term planning. Perfect for market research and preparation.',
+                        'just_browsing': '🔍 Early research phase. We can provide market insights and education.'
+                    };
+                    this.timelineInsights = insights[this.form.timeline] || '';
+                },
+                
+                getLocationSuggestions() {
+                    // Simulate AI location suggestions based on input
+                    const input = this.form.preferred_areas.toLowerCase();
+                    this.locationSuggestions = [];
+                    
+                    if (input.includes('downtown') || input.includes('city')) {
+                        this.locationSuggestions.push('Urban Core', 'Arts District', 'Financial District');
+                    }
+                    if (input.includes('suburb') || input.includes('quiet')) {
+                        this.locationSuggestions.push('Family Neighborhoods', 'Residential Areas', 'Cul-de-sac Streets');
+                    }
+                    if (input.includes('school') || input.includes('family')) {
+                        this.locationSuggestions.push('Top School Districts', 'Family Communities');
+                    }
+                },
+                
+                addLocationSuggestion(suggestion) {
+                    if (!this.form.preferred_areas.includes(suggestion)) {
+                        this.form.preferred_areas += (this.form.preferred_areas ? ', ' : '') + suggestion;
+                    }
+                    this.locationSuggestions = [];
                 },
                 
                 async submitForm() {
                     this.loading = true;
                     
                     try {
+                        // Enhanced form data for AI processing
+                        const enhancedFormData = {
+                            ...this.form,
+                            metadata: {
+                                step_completion_time: Date.now(),
+                                user_agent: navigator.userAgent,
+                                screen_resolution: `${screen.width}x${screen.height}`,
+                                priorities: this.form.priorities,
+                                preferences: {
+                                    budget_range: this.form.budget_range,
+                                    bedrooms: this.form.bedrooms,
+                                    bathrooms: this.form.bathrooms,
+                                    property_type: this.form.property_type,
+                                    preferred_areas: this.form.preferred_areas,
+                                    timeline: this.form.timeline,
+                                    contact_preference: this.form.contact_preference,
+                                    financing_status: this.form.financing_status
+                                },
+                                ai_context: {
+                                    motivation: this.form.motivation,
+                                    important_features: this.form.important_features,
+                                    priorities_selected: this.form.priorities.length,
+                                    form_engagement_level: this.calculateEngagementLevel()
+                                }
+                            }
+                        };
+                        
                         const response = await fetch('/api/v1/leads/', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({
-                                ...this.form,
-                                metadata: {
-                                    priorities: this.form.priorities,
-                                    budget_range: this.form.budget_range,
-                                    preferences: {
-                                        bedrooms: this.form.bedrooms,
-                                        bathrooms: this.form.bathrooms,
-                                        property_type: this.form.property_type,
-                                        preferred_areas: this.form.preferred_areas,
-                                        important_features: this.form.important_features,
-                                        timeline: this.form.timeline
-                                    }
-                                }
-                            })
+                            body: JSON.stringify(enhancedFormData)
                         });
                         
                         if (response.ok) {
+                            const result = await response.json();
                             this.success = true;
+                            
+                            // Track successful submission
+                            if (typeof gtag !== 'undefined') {
+                                gtag('event', 'lead_submission', {
+                                    'event_category': 'buyer_interest',
+                                    'value': this.form.budget_range
+                                });
+                            }
+                            
                             // Reset form
-                            this.form = {
-                                full_name: '', email: '', phone: '', budget_range: '',
-                                bedrooms: '', bathrooms: '', property_type: '',
-                                preferred_areas: '', priorities: [], important_features: '',
-                                timeline: '', lead_type: 'buyer_interest'
-                            };
+                            this.resetForm();
                         } else {
                             throw new Error('Failed to submit form');
                         }
                     } catch (error) {
                         console.error('Error:', error);
-                        alert('Sorry, there was an error submitting your information. Please try again.');
+                        alert('Sorry, there was an error submitting your information. Please try again or call us directly.');
                     } finally {
                         this.loading = false;
                     }
+                },
+                
+                calculateEngagementLevel() {
+                    let score = 0;
+                    
+                    // Text field completion
+                    if (this.form.preferred_areas && this.form.preferred_areas.length > 20) score += 2;
+                    if (this.form.motivation && this.form.motivation.length > 30) score += 2;
+                    if (this.form.important_features && this.form.important_features.length > 50) score += 3;
+                    
+                    // Priority selection
+                    score += this.form.priorities.length;
+                    
+                    // Optional field completion
+                    if (this.form.contact_preference) score += 1;
+                    if (this.form.financing_status) score += 1;
+                    if (this.form.bedrooms) score += 1;
+                    if (this.form.bathrooms) score += 1;
+                    if (this.form.property_type) score += 1;
+                    
+                    return Math.min(score, 20); // Cap at 20
+                },
+                
+                resetForm() {
+                    this.form = {
+                        full_name: '', email: '', phone: '', contact_preference: '',
+                        budget_range: '', bedrooms: '', bathrooms: '', property_type: '',
+                        preferred_areas: '', timeline: '', priorities: [],
+                        motivation: '', important_features: '', financing_status: '',
+                        lead_type: 'buyer_interest'
+                    };
+                    this.step = 1;
+                    this.errors = {};
                 }
             }
         }

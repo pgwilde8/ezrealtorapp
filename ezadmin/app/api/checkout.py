@@ -143,25 +143,45 @@ async def agent_dashboard(
     token: str = None,
     db: AsyncSession = Depends(get_db)
 ):
-    """Agent dashboard after successful checkout"""
+    """Agent dashboard - requires authentication or valid checkout token"""
+    from app.middleware.auth import get_current_agent, get_agent_slug_from_host
+    
+    # Check for authenticated agent first
+    current_agent = await get_current_agent(request, db)
     
     # Get subdomain from request
     host = request.headers.get("host", "")
-    if "." in host:
-        subdomain = host.split(".")[0]
-        if subdomain != "login":
-            # Find agent by slug
-            result = await db.execute(
-                select(Agent).where(Agent.slug == subdomain)
-            )
-            agent = result.scalar_one_or_none()
-            
-            if agent:
-                return templates.TemplateResponse("agent_dashboard.html", {
-                    "request": request,
-                    "agent": agent,
-                    "is_new_customer": bool(token and token.startswith("checkout_"))
-                })
+    expected_slug = get_agent_slug_from_host(host)
     
-    # Fallback to main site
-    return RedirectResponse(url="https://ezrealtor.app/")
+    if current_agent:
+        # Verify the agent matches the subdomain
+        if expected_slug and current_agent.slug != expected_slug:
+            # Redirect to correct subdomain or login
+            return RedirectResponse(url=f"https://login.ezrealtor.app?redirect_to={current_agent.slug}")
+        
+        return templates.TemplateResponse("realtor_dashboard.html", {
+            "request": request,
+            "agent": current_agent,
+            "is_new_customer": False
+        })
+    
+    # Handle new customer with checkout token
+    if token and token.startswith("checkout_") and expected_slug:
+        # Find agent by slug for new customer flow
+        result = await db.execute(
+            select(Agent).where(Agent.slug == expected_slug)
+        )
+        agent = result.scalar_one_or_none()
+        
+        if agent:
+            return templates.TemplateResponse("realtor_dashboard.html", {
+                "request": request,
+                "agent": agent,
+                "is_new_customer": True
+            })
+    
+    # No authentication and no valid token - redirect to login
+    if expected_slug:
+        return RedirectResponse(url=f"https://login.ezrealtor.app?redirect_to={expected_slug}")
+    else:
+        return RedirectResponse(url="https://login.ezrealtor.app")

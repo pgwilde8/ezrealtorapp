@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import API routers
-from app.api import leads, agents, domains, billing, providers, customization, stripe_webhook, checkout
+from app.api import leads, agents, domains, billing, providers, customization, stripe_webhook, checkout, auth
 from app.api.admin import tenants, plans, webhooks, dashboard
 from app.middleware.tenant_resolver import TenantMiddleware
 from app.utils.database import engine, create_tables, get_db
@@ -59,6 +59,7 @@ if os.path.exists("app/static"):
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # API Routes
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(leads.router, prefix="/api/v1/leads", tags=["leads"])
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["agents"])
 app.include_router(domains.router, prefix="/api/v1/domains", tags=["domains"])
@@ -77,8 +78,22 @@ app.include_router(dashboard.router, prefix="/admin", tags=["admin-dashboard"])
 # Root routes
 @app.get("/")
 async def homepage(request: Request):
-    """Marketing homepage"""
+    """Marketing homepage or login page based on subdomain"""
+    from app.middleware.auth import is_login_subdomain
+    
+    host = request.headers.get("host", "")
+    
+    # If this is the login subdomain, serve the login page
+    if is_login_subdomain(host):
+        return templates.TemplateResponse("auth/login.html", {"request": request})
+    
+    # Otherwise serve the marketing homepage
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/admin")
+async def admin_dashboard_page(request: Request):
+    """Admin dashboard HTML page"""
+    return templates.TemplateResponse("admin/index.html", {"request": request})
 
 @app.get("/lead-buyer")
 async def lead_buyer_form(request: Request, db: AsyncSession = Depends(get_db)):

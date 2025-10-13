@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if agent %}{{ agent.first_name }}'s Lead Dashboard{% else %}Realtor Dashboard{% endif %} - EZRealtor.app</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen" x-data="realtorDashboard()" x-cloak>
+    <!-- Top Navigation -->
+    <nav class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">
+                        <i class="fas fa-home mr-2"></i>EZRealtor.app
+                    </h1>
+                    {% if agent %}
+                    <span class="ml-4 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                        {{ agent.first_name }}'s Dashboard
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-crown text-yellow-500 mr-1"></i>
+                        <span class="font-medium">{% if agent %}{{ agent.plan_tier|title }}{% else %}Trial{% endif %} Plan</span>
+                    </div>
+                    <button @click="refreshData" class="bg-blue-600 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-700">
+                        <i class="fas fa-sync-alt mr-1"></i> Refresh
+                    </button>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center text-gray-700 hover:text-gray-900">
+                            <i class="fas fa-user-circle text-2xl mr-2"></i>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                        <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="/customize" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-palette mr-2"></i>Customize Site
+                            </a>
+                            <a href="/billing" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-credit-card mr-2"></i>Billing
+                            </a>
+                            <a href="/config" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-cog mr-2"></i>Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Welcome Banner for New Users -->
+    {% if is_new_customer %}
+    <div class="bg-gradient-to-r from-green-500 to-blue-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center">
+                <i class="fas fa-party-horn text-2xl mr-3"></i>
+                <div>
+                    <h2 class="text-lg font-bold">Welcome to EZRealtor.app!</h2>
+                    <p class="text-sm opacity-90">Your AI-powered lead generation system is ready. Start capturing leads now!</p>
+                </div>
+                <a href="/customize" class="ml-auto bg-white text-blue-600 px-4 py-2 rounded-md font-medium hover:bg-gray-100">
+                    Customize Your Site
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Dashboard Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Key Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Leads -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-lg">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Leads</p>
+                        <p class="text-2xl font-bold text-gray-900" x-text="stats.totalLeads || '0'"></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-blue-600 text-sm">
+                        +<span x-text="stats.newLeadsToday || '0'"></span> today
+                    </span>
+                </div>
+            </div>
+
+            <!-- Hot Leads -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-red-100 rounded-lg">
+                        <i class="fas fa-fire text-red-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Hot Leads</p>
+                        <p class="text-2xl font-bold text-gray-900" x-text="stats.hotLeads || '0'"></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-red-600 text-sm">
+                        <span x-text="stats.hotLeadsPercentage || '0'"></span>% of total
+                    </span>
+                </div>
+            </div>
+
+            <!-- AI Insights -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-lg">
+                        <i class="fas fa-robot text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">AI Analyzed</p>
+                        <p class="text-2xl font-bold text-gray-900" x-text="stats.aiAnalyzed || '0'"></p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-purple-600 text-sm">
+                        <span x-text="stats.aiSuccessRate || '0'"></span>% success rate
+                    </span>
+                </div>
+            </div>
+
+            <!-- Conversion Rate -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg">
+                        <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Conversion Rate</p>
+                        <p class="text-2xl font-bold text-gray-900"><span x-text="stats.conversionRate || '0'"></span>%</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm">
+                        +<span x-text="stats.conversionImprovement || '0'"></span>% this month
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                    <p class="text-sm text-gray-600">Manage your lead generation and site</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="/lead-buyer" target="_blank" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        View Buyer Form
+                    </a>
+                    <a href="/lead-home-value" target="_blank" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center">
+                        <i class="fas fa-home mr-2"></i>
+                        View Valuation Form
+                    </a>
+                    <a href="/customize" class="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 flex items-center">
+                        <i class="fas fa-palette mr-2"></i>
+                        Customize Site
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leads Management Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            
+            <!-- Recent Leads -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Recent Leads</h3>
+                        <p class="text-sm text-gray-600">Latest leads with AI insights</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button @click="filterLeads = 'all'" :class="filterLeads === 'all' ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+                            All
+                        </button>
+                        <button @click="filterLeads = 'hot'" :class="filterLeads === 'hot' ? 'bg-red-100 text-red-700' : 'text-gray-500 hover:text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+                            Hot
+                        </button>
+                        <button @click="filterLeads = 'new'" :class="filterLeads === 'new' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:text-gray-700'" class="px-3 py-1 rounded-md text-sm">
+                            New
+                        </button>
+                    </div>
+                </div>
+                <div class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                    <template x-for="lead in filteredLeads" :key="lead.id">
+                        <div class="p-6 hover:bg-gray-50">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center">
+                                        <h4 class="text-lg font-medium text-gray-900" x-text="lead.name"></h4>
+                                        <span class="ml-3 px-2 py-1 text-xs rounded-full" 
+                                              :class="lead.priority === 'hot' ? 'bg-red-100 text-red-800' : 
+                                                     lead.priority === 'warm' ? 'bg-yellow-100 text-yellow-800' : 
+                                                     'bg-gray-100 text-gray-800'" 
+                                              x-text="lead.priority?.toUpperCase()"></span>
+                                        <span class="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full" x-text="lead.source"></span>
+                                    </div>
+                                    <div class="mt-1 flex items-center text-sm text-gray-600">
+                                        <i class="fas fa-envelope mr-1"></i>
+                                        <span x-text="lead.email"></span>
+                                        <span class="mx-2">•</span>
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span x-text="lead.timeAgo"></span>
+                                    </div>
+                                    <div class="mt-2" x-show="lead.aiSummary">
+                                        <p class="text-sm text-gray-700">
+                                            <i class="fas fa-robot text-purple-500 mr-1"></i>
+                                            <span x-text="lead.aiSummary"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="text-right">
+                                        <div class="text-lg font-bold" :class="lead.aiScore >= 80 ? 'text-green-600' : lead.aiScore >= 60 ? 'text-yellow-600' : 'text-gray-600'">
+                                            <span x-text="lead.aiScore || 'N/A'"></span><span x-show="lead.aiScore">/100</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500">AI Score</div>
+                                    </div>
+                                    <div class="flex flex-col space-y-1">
+                                        <button @click="callLead(lead)" class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+                                            <i class="fas fa-phone mr-1"></i>Call
+                                        </button>
+                                        <button @click="emailLead(lead)" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                                            <i class="fas fa-envelope mr-1"></i>Email
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <!-- Empty State -->
+                    <div x-show="filteredLeads.length === 0" class="p-8 text-center">
+                        <i class="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
+                        <p class="text-gray-600">No leads found. Start by sharing your lead capture forms!</p>
+                        <div class="mt-4 space-x-2">
+                            <a href="/lead-buyer" target="_blank" class="text-blue-600 hover:text-blue-800">Buyer Interest Form</a>
+                            <span class="text-gray-400">•</span>
+                            <a href="/lead-home-value" target="_blank" class="text-blue-600 hover:text-blue-800">Home Valuation Form</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Insights Panel -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">AI Insights</h3>
+                    <p class="text-sm text-gray-600">Smart recommendations for your business</p>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <template x-for="insight in aiInsights" :key="insight.id">
+                            <div class="p-4 rounded-lg border border-gray-200">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <i :class="insight.icon" class="text-purple-600 text-lg"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-gray-900" x-text="insight.title"></h4>
+                                        <p class="text-sm text-gray-600 mt-1" x-text="insight.description"></p>
+                                        <button x-show="insight.action" class="text-blue-600 hover:text-blue-800 text-xs mt-2" x-text="insight.action"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Chart -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Lead Analytics</h3>
+                <p class="text-sm text-gray-600">Track your lead generation performance</p>
+            </div>
+            <div class="p-6">
+                <canvas id="leadsChart" width="400" height="150"></canvas>
+            </div>
+        </div>
+
+        <!-- Lead URLs Section -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Your Lead Capture URLs</h3>
+                <p class="text-sm text-gray-600">Share these links to start capturing leads</p>
+            </div>
+            <div class="p-6">
+                {% if agent %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Buyer Interest Form:</label>
+                        <div class="flex">
+                            <input type="text" class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                   value="https://{{ agent.slug }}.ezrealtor.app/lead-buyer" readonly>
+                            <button onclick="copyToClipboard('https://{{ agent.slug }}.ezrealtor.app/lead-buyer')" 
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Home Valuation Form:</label>
+                        <div class="flex">
+                            <input type="text" class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                   value="https://{{ agent.slug }}.ezrealtor.app/lead-home-value" readonly>
+                            <button onclick="copyToClipboard('https://{{ agent.slug }}.ezrealtor.app/lead-home-value')" 
+                                    class="px-4 py-2 bg-green-600 text-white rounded-r-md hover:bg-green-700">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        function realtorDashboard() {
+            return {
+                filterLeads: 'all',
+                stats: {
+                    totalLeads: 0,
+                    newLeadsToday: 0,
+                    hotLeads: 0,
+                    hotLeadsPercentage: 0,
+                    aiAnalyzed: 0,
+                    aiSuccessRate: 0,
+                    conversionRate: 0,
+                    conversionImprovement: 0
+                },
+                leads: [],
+                aiInsights: [
+                    {
+                        id: 1,
+                        icon: 'fas fa-lightbulb',
+                        title: 'Peak Lead Times',
+                        description: 'Most leads come in between 2-4 PM on weekdays. Consider boosting ads during these hours.',
+                        action: 'View Analytics'
+                    },
+                    {
+                        id: 2,
+                        icon: 'fas fa-target',
+                        title: 'High-Intent Keywords',
+                        description: 'Leads mentioning "urgent" or "relocating" have 85% higher conversion rates.',
+                        action: 'Update Forms'
+                    },
+                    {
+                        id: 3,
+                        icon: 'fas fa-phone',
+                        title: 'Response Time Impact',
+                        description: 'Calling within 5 minutes increases conversion by 400%. Enable instant notifications.',
+                        action: 'Configure Alerts'
+                    }
+                ],
+
+                get filteredLeads() {
+                    if (this.filterLeads === 'all') return this.leads;
+                    if (this.filterLeads === 'hot') return this.leads.filter(lead => lead.priority === 'hot');
+                    if (this.filterLeads === 'new') return this.leads.filter(lead => lead.isNew);
+                    return this.leads;
+                },
+
+                async init() {
+                    await this.loadDashboardData();
+                    this.initChart();
+                    
+                    // Auto-refresh every 2 minutes
+                    setInterval(() => {
+                        this.refreshData();
+                    }, 120000);
+                },
+
+                async loadDashboardData() {
+                    try {
+                        // Load agent stats
+                        const statsResponse = await fetch('/api/v1/agents/stats');
+                        if (statsResponse.ok) {
+                            const statsData = await statsResponse.json();
+                            this.stats = { ...this.stats, ...statsData };
+                        }
+
+                        // Load recent leads
+                        const leadsResponse = await fetch('/api/v1/leads?limit=10');
+                        if (leadsResponse.ok) {
+                            const leadsData = await leadsResponse.json();
+                            this.leads = leadsData.map(lead => ({
+                                id: lead.id,
+                                name: lead.full_name || 'Anonymous',
+                                email: lead.email || 'No email',
+                                source: lead.source || 'Unknown',
+                                priority: lead.ai_priority || 'warm',
+                                aiScore: lead.ai_score,
+                                aiSummary: lead.ai_summary ? JSON.parse(lead.ai_summary).summary : null,
+                                timeAgo: this.timeAgo(lead.created_at),
+                                isNew: new Date(lead.created_at) > new Date(Date.now() - 24*60*60*1000)
+                            }));
+                        }
+
+                        // Mock data if no real data
+                        if (this.leads.length === 0) {
+                            this.leads = [
+                                {
+                                    id: '1',
+                                    name: 'Sarah Johnson',
+                                    email: 'sarah@email.com',
+                                    source: 'Buyer Interest',
+                                    priority: 'hot',
+                                    aiScore: 92,
+                                    aiSummary: 'High-intent buyer looking for family home in Westfield. Has pre-approval, wants to move within 30 days.',
+                                    timeAgo: '5 minutes ago',
+                                    isNew: true
+                                },
+                                {
+                                    id: '2',
+                                    name: 'Mike Chen',
+                                    email: 'mike@email.com',
+                                    source: 'Home Valuation',
+                                    priority: 'warm',
+                                    aiScore: 76,
+                                    aiSummary: 'Considering selling current home. Mentioned job relocation to Austin in 6 months.',
+                                    timeAgo: '2 hours ago',
+                                    isNew: false
+                                },
+                                {
+                                    id: '3',
+                                    name: 'Lisa Rodriguez',
+                                    email: 'lisa@email.com',
+                                    source: 'Buyer Interest',
+                                    priority: 'cold',
+                                    aiScore: 45,
+                                    aiSummary: 'General inquiry about market conditions. No specific timeline mentioned.',
+                                    timeAgo: '1 day ago',
+                                    isNew: false
+                                }
+                            ];
+                            
+                            this.stats = {
+                                totalLeads: 23,
+                                newLeadsToday: 3,
+                                hotLeads: 8,
+                                hotLeadsPercentage: 35,
+                                aiAnalyzed: 20,
+                                aiSuccessRate: 87,
+                                conversionRate: 24,
+                                conversionImprovement: 12
+                            };
+                        }
+
+                    } catch (error) {
+                        console.error('Failed to load dashboard data:', error);
+                    }
+                },
+
+                async refreshData() {
+                    await this.loadDashboardData();
+                },
+
+                timeAgo(dateString) {
+                    const date = new Date(dateString);
+                    const now = new Date();
+                    const diffMs = now - date;
+                    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    
+                    if (diffHours < 1) return 'Just now';
+                    if (diffHours < 24) return `${diffHours} hours ago`;
+                    if (diffDays === 1) return 'Yesterday';
+                    return `${diffDays} days ago`;
+                },
+
+                callLead(lead) {
+                    // Open phone dialer if on mobile, or show phone number
+                    if (lead.phone) {
+                        window.open(`tel:${lead.phone}`);
+                    } else {
+                        alert(`Contact info: ${lead.email}`);
+                    }
+                },
+
+                emailLead(lead) {
+                    // Open email client
+                    window.open(`mailto:${lead.email}?subject=Following up on your interest&body=Hi ${lead.name},%0D%0A%0D%0AI wanted to follow up on your recent inquiry...`);
+                },
+
+                initChart() {
+                    const ctx = document.getElementById('leadsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                            datasets: [{
+                                label: 'Leads',
+                                data: [3, 7, 2, 8, 12, 5, 9],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'Hot Leads',
+                                data: [1, 3, 1, 3, 5, 2, 4],
+                                borderColor: 'rgb(239, 68, 68)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                notification.innerHTML = '<i class="fas fa-check mr-2"></i>URL copied to clipboard!';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>
