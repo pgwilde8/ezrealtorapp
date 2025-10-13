@@ -263,8 +263,11 @@
                 return;
             }
 
+            // Store selectedPlan before closing modal
+            const currentPlan = selectedPlan;
+            
             // Close modal and show loading
-            closeUserInfoModal();
+            document.getElementById('userInfoModal').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
 
             try {
@@ -275,9 +278,9 @@
                     'enterprise': 'pro'  // Enterprise maps to pro price
                 };
 
-                const planTier = planMapping[selectedPlan];
+                const planTier = planMapping[currentPlan];
                 if (!planTier) {
-                    throw new Error(`Invalid plan: ${selectedPlan}`);
+                    throw new Error(`Invalid plan: ${currentPlan}`);
                 }
 
                 // Create anonymous checkout session
@@ -323,6 +326,9 @@
                     alert('Sorry, there was an error starting your checkout. Please try again or contact support.');
                 }
                 console.error('Checkout error:', error);
+                
+                // Reset the selectedPlan
+                selectedPlan = null;
             }
         });
 
