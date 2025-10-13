@@ -66,33 +66,25 @@ async def checkout_success(
             # Create new agent if none found
             agent = Agent(
                 email=customer.email,
-                first_name=customer.name.split(' ')[0] if customer.name else 'User',
-                last_name=' '.join(customer.name.split(' ')[1:]) if customer.name and ' ' in customer.name else '',
+                name=customer.name or 'New User',
                 stripe_customer_id=customer_id,
                 stripe_subscription_id=subscription_id,
                 status=AgentStatus.ACTIVE,
                 plan_tier=PlanTier.BOOSTER,  # Default, will be updated by webhook
-                slug=customer.email.split('@')[0].lower()  # Use email prefix as slug
+                slug=customer.email.split('@')[0].lower().replace('.', '').replace('_', '').replace('-', '')[:20]
             )
             db.add(agent)
             await db.commit()
             await db.refresh(agent)
         
-        # Generate a secure login token or session
-        login_token = f"checkout_{session_id}_{agent.id}"  # Simple token for demo
+        # TODO: Send welcome email with login instructions here
         
-        # Redirect to agent's subdomain with login
-        subdomain_url = f"https://{agent.slug}.ezrealtor.app/dashboard?token={login_token}"
+        # Redirect to thank you page instead of trying to auto-login
+        return RedirectResponse(
+            url=f"https://ezrealtor.app/checkout/thank-you?email={customer.email}&plan={agent.plan_tier}",
+            status_code=302
+        )
         
-        return RedirectResponse(url=subdomain_url)
-        
-    except stripe.error.StripeError as e:
-        logger.error(f"Stripe error in checkout success: {e}")
-        return templates.TemplateResponse("checkout_error.html", {
-            "request": request,
-            "error": "Payment verification failed"
-        })
-    
     except Exception as e:
         logger.error(f"Error in checkout success: {e}")
         return templates.TemplateResponse("checkout_error.html", {

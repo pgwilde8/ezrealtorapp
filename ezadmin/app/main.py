@@ -66,7 +66,7 @@ app.include_router(billing.router, prefix="/api/v1/billing", tags=["billing"])
 app.include_router(providers.router, prefix="/api/v1/providers", tags=["providers"])
 app.include_router(customization.router, prefix="/api/v1", tags=["customization"])
 app.include_router(stripe_webhook.router, prefix="/api/v1", tags=["stripe"])
-app.include_router(checkout.router, prefix="", tags=["checkout"])
+app.include_router(checkout.router, prefix="/api/v1", tags=["checkout"])
 
 # Admin Routes
 app.include_router(tenants.router, prefix="/admin/tenants", tags=["admin-tenants"])
@@ -122,6 +122,15 @@ async def lead_home_value_form(request: Request, db: AsyncSession = Depends(get_
 async def pricing_page(request: Request):
     """Pricing plans page"""
     return templates.TemplateResponse("pricing.html", {"request": request})
+
+@app.get("/checkout/thank-you")
+async def checkout_thank_you(request: Request, email: str = None, plan: str = None):
+    """Thank you page after successful checkout"""
+    return templates.TemplateResponse("checkout_thank_you.html", {
+        "request": request,
+        "email": email,
+        "plan": plan
+    })
 
 @app.get("/config")
 async def config_page(request: Request):

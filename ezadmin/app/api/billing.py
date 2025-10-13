@@ -5,6 +5,7 @@ Handles Stripe integration, subscriptions, and plan management
 
 import os
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from pydantic import BaseModel
@@ -245,6 +246,86 @@ async def create_anonymous_checkout_session(
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=400, detail=f"Checkout error: {str(e)}")
+
+@router.get("/checkout/success")
+async def checkout_success(
+    session_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """Handle successful Stripe checkout redirect"""
+    
+    try:
+        import stripe
+        stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+        
+        # Retrieve the checkout session
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            # Get customer and subscription info
+            customer_id = session.customer
+            subscription_id = session.subscription
+            
+            # Get customer details
+            customer = stripe.Customer.retrieve(customer_id)
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            
+            # Extract metadata
+            email = session.metadata.get('email') or customer.email
+            name = session.metadata.get('name') or customer.name
+            plan_tier = session.metadata.get('plan_tier', 'trial')
+            
+            # Create or update agent record
+            from sqlalchemy import select
+            from app.models.agent import Agent, PlanTier, AgentStatus
+            
+            result = await db.execute(select(Agent).where(Agent.email == email))
+            existing_agent = result.scalar_one_or_none()
+            
+            if existing_agent:
+                # Update existing agent
+                existing_agent.plan_tier = PlanTier(plan_tier)
+                existing_agent.status = AgentStatus.ACTIVE
+                existing_agent.stripe_customer_id = customer_id
+                existing_agent.stripe_subscription_id = subscription_id
+                agent = existing_agent
+            else:
+                # Create new agent
+                import uuid
+                agent = Agent(
+                    id=uuid.uuid4(),
+                    email=email,
+                    name=name,
+                    plan_tier=PlanTier(plan_tier),
+                    status=AgentStatus.ACTIVE,
+                    stripe_customer_id=customer_id,
+                    stripe_subscription_id=subscription_id,
+                    slug=email.split('@')[0].lower().replace('.', '').replace('_', '').replace('-', '')[:20]
+                )
+                db.add(agent)
+            
+            await db.commit()
+            
+            # Redirect to login with success message
+            return RedirectResponse(
+                url=f"https://login.ezrealtor.app?welcome=true&plan={plan_tier}",
+                status_code=302
+            )
+        else:
+            # Payment not completed
+            return RedirectResponse(
+                url="https://ezrealtor.app/pricing?error=payment_failed",
+                status_code=302
+            )
+            
+    except Exception as e:
+        logger.error(f"Checkout success error: {e}")
+        # Redirect to pricing with error
+        return RedirectResponse(
+            url="https://ezrealtor.app/pricing?error=checkout_failed",
+            status_code=302
+        )
 
 @router.post("/portal", response_model=dict)
 async def create_billing_portal_session(
