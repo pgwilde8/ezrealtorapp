@@ -27,7 +27,7 @@ class UsageCounter(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    agent = relationship("Agent", back_populates="usage_counters")
+    agent = relationship("Agent")
     
     __table_args__ = (
         {"schema": None}  # Default schema

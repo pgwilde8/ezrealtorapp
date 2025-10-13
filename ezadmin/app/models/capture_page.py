@@ -31,7 +31,7 @@ class CapturePage(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships
-    agent = relationship("Agent", back_populates="capture_pages")
+    agent = relationship("Agent")
     leads = relationship("Lead", back_populates="capture_page")
     
     __table_args__ = (

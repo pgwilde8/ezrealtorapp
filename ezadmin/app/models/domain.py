@@ -32,7 +32,7 @@ class AgentDomain(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    agent = relationship("Agent", back_populates="domains")
+    agent = relationship("Agent")
     
     def __repr__(self):
         return f"<AgentDomain(id={self.id}, hostname='{self.hostname}', status='{self.verification_status}')>"

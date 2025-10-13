@@ -62,7 +62,7 @@ class Lead(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    agent = relationship("Agent", back_populates="leads")
+    agent = relationship("Agent")
     capture_page = relationship("CapturePage", back_populates="leads")
     notifications = relationship("Notification", back_populates="lead", cascade="all, delete-orphan")
     

@@ -11,6 +11,10 @@ from fastapi.middleware.gzip import GZipMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 import os
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Import API routers
 from app.api import leads, agents, domains, billing, providers, customization, stripe_webhook, checkout
@@ -179,6 +183,48 @@ async def health_check():
 async def api_health():
     """API health check"""
     return {"status": "healthy", "version": "1.0.0"}
+
+@app.post("/api/v1/test-db")
+async def test_database(db: AsyncSession = Depends(get_db)):
+    """Test database connection and Agent model"""
+    try:
+        from sqlalchemy import select
+        from app.models.agent import Agent
+        
+        # Test basic query
+        result = await db.execute(select(Agent).where(Agent.email == "nonexistent@test.com"))
+        agent = result.scalar_one_or_none()
+        
+        return {"status": "success", "agent_found": agent is not None}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.get("/api/v1/debug-env")
+async def debug_environment():
+    """Debug endpoint to check environment variables"""
+    return {
+        "stripe_secret_key": "LOADED" if os.getenv("STRIPE_SECRET_KEY") else "NOT_FOUND",
+        "stripe_free_price": os.getenv("STRIPE_FREE_PRICE_ID", "NOT_FOUND"),
+        "stripe_basic_price": os.getenv("STRIPE_BASIC_PRICE_ID", "NOT_FOUND"),
+        "stripe_pro_price": os.getenv("STRIPE_PRO_PRICE_ID", "NOT_FOUND"),
+    }
+
+@app.post("/api/v1/test-stripe")
+async def test_stripe():
+    """Test Stripe connection"""
+    try:
+        import stripe
+        stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+        
+        # Try to create a simple customer
+        customer = stripe.Customer.create(
+            email="test-stripe@example.com",
+            name="Test Customer"
+        )
+        
+        return {"status": "success", "customer_id": customer.id}
+    except Exception as e:
+        return {"status": "error", "error": str(e), "error_type": str(type(e))}
 
 if __name__ == "__main__":
     import uvicorn

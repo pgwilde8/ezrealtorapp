@@ -10,17 +10,26 @@ from sqlalchemy import select, update
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
+import logging
 
 from app.utils.database import get_db
 from app.models.agent import Agent, PlanTier
 from app.middleware.tenant_resolver import get_current_agent_id
 from app.services.billing import billing_service
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 # Pydantic models
 class CheckoutRequest(BaseModel):
     plan_tier: PlanTier
+    billing_cycle: str = "monthly"  # monthly or yearly
+
+class AnonymousCheckoutRequest(BaseModel):
+    plan_tier: PlanTier
+    email: str
+    name: str
     billing_cycle: str = "monthly"  # monthly or yearly
 
 class SubscriptionResponse(BaseModel):
@@ -112,6 +121,130 @@ async def create_checkout_session(
         await db.commit()
     
     return checkout_data
+
+@router.get("/checkout")
+async def simple_checkout_redirect(plan: str):
+    """Simple GET endpoint for checkout with URL parameters"""
+    
+    # Map URL plan parameter to our plan tiers  
+    plan_mapping = {
+        'trial': 'trial',
+        'pro': 'booster',  # Your "pro" maps to our booster price ($97)
+        'enterprise': 'pro'  # Enterprise maps to pro price ($297)
+    }
+    
+    if plan not in plan_mapping:
+        raise HTTPException(status_code=400, detail=f"Invalid plan: {plan}")
+    
+    price_ids = {
+        "trial": os.getenv("STRIPE_FREE_PRICE_ID"),
+        "booster": os.getenv("STRIPE_BASIC_PRICE_ID"), 
+        "pro": os.getenv("STRIPE_PRO_PRICE_ID"),
+    }
+    
+    mapped_plan = plan_mapping[plan]
+    price_id = price_ids.get(mapped_plan)
+    
+    if not price_id:
+        raise HTTPException(status_code=400, detail=f"Price not configured for plan: {plan}")
+    
+    return {
+        "plan": plan,
+        "mapped_plan": mapped_plan, 
+        "price_id": price_id,
+        "status": "success",
+        "message": f"Checkout endpoint for {plan} plan is working",
+        "next_step": "Use POST /checkout-anonymous with email and name to create full Stripe session"
+    }
+
+@router.post("/checkout-anonymous", response_model=dict)
+async def create_anonymous_checkout_session(
+    checkout_request: AnonymousCheckoutRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """Create Stripe checkout session for new user (no authentication required)"""
+    
+    # Check if email already exists
+    result = await db.execute(select(Agent).where(Agent.email == checkout_request.email))
+    existing_agent = result.scalar_one_or_none()
+    
+    if existing_agent:
+        raise HTTPException(
+            status_code=400, 
+            detail="Email already registered. Please login to manage your subscription."
+        )
+    
+    # Create success and cancel URLs
+    base_url = str(request.base_url).rstrip('/')
+    success_url = f"{base_url}/api/v1/checkout/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{base_url}/pricing?checkout=cancelled"
+    
+    try:
+        # Import stripe here to avoid circular imports
+        import stripe
+        
+        # Debug the stripe key loading
+        stripe_key = os.getenv("STRIPE_SECRET_KEY")
+        logger.info(f"Stripe key loaded: {'LOADED' if stripe_key else 'MISSING'}")
+        
+        if not stripe_key:
+            raise HTTPException(status_code=500, detail="Stripe API key not configured")
+        
+        stripe.api_key = stripe_key
+        
+        # Create Stripe customer first
+        customer = stripe.Customer.create(
+            email=checkout_request.email,
+            name=checkout_request.name,
+            metadata={
+                "plan_tier": checkout_request.plan_tier.value,
+                "source": "anonymous_checkout"
+            }
+        )
+        
+        # Create checkout session
+        price_ids = {
+            "trial": os.getenv("STRIPE_FREE_PRICE_ID"),
+            "booster": os.getenv("STRIPE_BASIC_PRICE_ID"),
+            "pro": os.getenv("STRIPE_PRO_PRICE_ID"),
+        }
+        
+        price_id = price_ids.get(checkout_request.plan_tier)
+        if not price_id:
+            raise HTTPException(status_code=400, detail=f"Invalid plan tier: {checkout_request.plan_tier}")
+        
+        session = stripe.checkout.Session.create(
+            customer=customer.id,
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            allow_promotion_codes=True,
+            billing_address_collection='required',
+            metadata={
+                "email": checkout_request.email,
+                "name": checkout_request.name,
+                "plan_tier": checkout_request.plan_tier.value,
+                "source": "anonymous_checkout"
+            }
+        )
+        
+        return {
+            "checkout_url": session.url,
+            "session_id": session.id
+        }
+        
+    except Exception as e:
+        logger.error(f"Anonymous checkout error: {e}")
+        logger.error(f"Error type: {type(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=400, detail=f"Checkout error: {str(e)}")
 
 @router.post("/portal", response_model=dict)
 async def create_billing_portal_session(

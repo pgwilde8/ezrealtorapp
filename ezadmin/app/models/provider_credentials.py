@@ -34,7 +34,7 @@ class ProviderCredential(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    agent = relationship("Agent", back_populates="provider_credentials")
+    agent = relationship("Agent")
     
     def __repr__(self):
         return f"<ProviderCredential(id={self.id}, agent_id={self.agent_id}, provider='{self.provider}', key_name='{self.key_name}')>"

@@ -34,7 +34,7 @@ class Notification(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     
     # Relationships
-    agent = relationship("Agent", back_populates="notifications")
+    agent = relationship("Agent")
     lead = relationship("Lead", back_populates="notifications")
     
     def __repr__(self):

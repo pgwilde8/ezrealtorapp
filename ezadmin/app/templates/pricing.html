@@ -191,6 +191,44 @@
         </div>
     </section>
 
+    <!-- User info modal -->
+    <div id="userInfoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold text-gray-900 mb-4">Complete Your Information</h3>
+            <form id="userInfoForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="userName">
+                        Full Name
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           id="userName" 
+                           type="text" 
+                           placeholder="John Doe"
+                           required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="userEmail">
+                        Email Address
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           id="userEmail" 
+                           type="email" 
+                           placeholder="john@example.com"
+                           required>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" 
+                            type="submit">
+                        Continue to Payment
+                    </button>
+                </div>
+                <button type="button" onclick="closeUserInfoModal()" class="mt-3 w-full text-gray-500 hover:text-gray-700">
+                    Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Loading overlay -->
     <div id="loading" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-8 rounded-lg text-center">
@@ -200,22 +238,66 @@
     </div>
 
     <script>
-        // Initialize Stripe
-        const stripe = Stripe('{{ stripe_publishable_key }}'); // This will be injected by the backend
+        // Store the selected plan globally
+        let selectedPlan = null;
 
-        async function startCheckout(plan) {
-            // Show loading
+        function startCheckout(plan) {
+            selectedPlan = plan;
+            // Show user info modal
+            document.getElementById('userInfoModal').classList.remove('hidden');
+        }
+
+        function closeUserInfoModal() {
+            document.getElementById('userInfoModal').classList.add('hidden');
+            selectedPlan = null;
+        }
+
+        document.getElementById('userInfoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+            
+            if (!name || !email) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Close modal and show loading
+            closeUserInfoModal();
             document.getElementById('loading').classList.remove('hidden');
 
             try {
-                // Create checkout session
-                const response = await fetch('/api/v1/billing/create-checkout-session', {
+                // Map plan names to PlanTier values
+                const planMapping = {
+                    'trial': 'trial',
+                    'pro': 'booster',  // Pro plan maps to booster price
+                    'enterprise': 'pro'  // Enterprise maps to pro price
+                };
+
+                const planTier = planMapping[selectedPlan];
+                if (!planTier) {
+                    throw new Error(`Invalid plan: ${selectedPlan}`);
+                }
+
+                // Create anonymous checkout session
+                const response = await fetch('/api/v1/billing/checkout-anonymous', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ plan: plan })
+                    body: JSON.stringify({ 
+                        plan_tier: planTier,
+                        email: email,
+                        name: name,
+                        billing_cycle: 'monthly'
+                    })
                 });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Checkout failed');
+                }
 
                 const session = await response.json();
 
@@ -223,13 +305,11 @@
                     throw new Error(session.error);
                 }
 
-                // Redirect to Stripe Checkout
-                const result = await stripe.redirectToCheckout({
-                    sessionId: session.session_id
-                });
-
-                if (result.error) {
-                    throw new Error(result.error.message);
+                // Redirect to Stripe Checkout using the URL
+                if (session.checkout_url) {
+                    window.location.href = session.checkout_url;
+                } else {
+                    throw new Error('No checkout URL received');
                 }
 
             } catch (error) {
@@ -237,10 +317,14 @@
                 document.getElementById('loading').classList.add('hidden');
                 
                 // Show error
-                alert('Sorry, there was an error starting your checkout. Please try again or contact support.');
+                if (error.message.includes('Email already registered')) {
+                    alert('This email is already registered. Please login to manage your subscription.');
+                } else {
+                    alert('Sorry, there was an error starting your checkout. Please try again or contact support.');
+                }
                 console.error('Checkout error:', error);
             }
-        }
+        });
 
         // Handle URL parameters for success/cancel
         const urlParams = new URLSearchParams(window.location.search);
