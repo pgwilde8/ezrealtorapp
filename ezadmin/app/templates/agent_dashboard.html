@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if agent %}{{ agent.first_name }}'s Dashboard{% else %}Agent Dashboard{% endif %} - EZRealtor.app</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+            --secondary-color: #f8f9fa;
+            --accent-color: #28a745;
+            --warning-color: #ffc107;
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), #1e3a72);
+            box-shadow: 0 2px 20px rgba(44, 90, 160, 0.3);
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--accent-color), #20c997);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .metric-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .quick-action {
+            background: linear-gradient(135deg, var(--primary-color), #1e3a72);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(44, 90, 160, 0.4);
+            color: white;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, var(--accent-color), #20c997);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-home me-2"></i>EZRealtor.app
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">
+                    {% if agent %}Welcome, {{ agent.first_name }}!{% endif %}
+                </span>
+                <a class="nav-link" href="/customize">
+                    <i class="fas fa-palette me-1"></i>Customize
+                </a>
+                <a class="nav-link" href="/billing">
+                    <i class="fas fa-credit-card me-1"></i>Billing
+                </a>
+                <a class="nav-link" href="/config">
+                    <i class="fas fa-cog me-1"></i>Settings
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    {% if is_new_customer %}
+    <!-- Welcome Banner for New Customers -->
+    <div class="welcome-banner">
+        <div class="container text-center">
+            <h1><i class="fas fa-star me-3"></i>Welcome to EZRealtor.app!</h1>
+            <p class="lead mb-0">Your subscription is active. Let's get your lead capture system set up!</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="container">
+        {% if is_new_customer %}
+        <!-- Success Message -->
+        <div class="success-message">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="mb-1"><i class="fas fa-check-circle me-2"></i>Payment Successful!</h5>
+                    <p class="mb-0">Your subscription is now active. Your lead capture pages are ready to use.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <strong>Plan: {{ agent.plan_tier.value.title() if agent and agent.plan_tier else 'Active' }}</strong>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Dashboard Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-card metric-card">
+                    <div class="metric-number">0</div>
+                    <h6 class="text-muted">Leads This Month</h6>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-card metric-card">
+                    <div class="metric-number">2</div>
+                    <h6 class="text-muted">Active Pages</h6>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-card metric-card">
+                    <div class="metric-number">100%</div>
+                    <h6 class="text-muted">Uptime</h6>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card dashboard-card metric-card">
+                    <div class="metric-number">{{ agent.plan_tier.value.title() if agent and agent.plan_tier else 'Active' }}</div>
+                    <h6 class="text-muted">Current Plan</h6>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-rocket me-2"></i>Quick Actions
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="/customize" class="quick-action">
+                                    <i class="fas fa-palette me-2"></i>
+                                    <strong>Customize Your Pages</strong><br>
+                                    <small>Add your branding and colors</small>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/config" class="quick-action">
+                                    <i class="fas fa-cog me-2"></i>
+                                    <strong>Configure APIs</strong><br>
+                                    <small>Set up integrations</small>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/lead-buyer" class="quick-action">
+                                    <i class="fas fa-eye me-2"></i>
+                                    <strong>View Buyer Page</strong><br>
+                                    <small>See your lead capture form</small>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/lead-home-value" class="quick-action">
+                                    <i class="fas fa-home me-2"></i>
+                                    <strong>View Home Value Page</strong><br>
+                                    <small>Check your valuation form</small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-link me-2"></i>Your Lead Pages
+                        </h5>
+                        {% if agent %}
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Buyer Interest</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control form-control-sm" 
+                                       value="https://{{ agent.slug }}.ezrealtor.app/lead-buyer" readonly>
+                                <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                        onclick="copyToClipboard('https://{{ agent.slug }}.ezrealtor.app/lead-buyer')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Home Valuation</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control form-control-sm" 
+                                       value="https://{{ agent.slug }}.ezrealtor.app/lead-home-value" readonly>
+                                <button class="btn btn-outline-secondary btn-sm" type="button" 
+                                        onclick="copyToClipboard('https://{{ agent.slug }}.ezrealtor.app/lead-home-value')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success feedback
+                alert('URL copied to clipboard!');
+            });
+        }
+
+        // Auto-hide success message after 10 seconds
+        {% if is_new_customer %}
+        setTimeout(function() {
+            const successMessage = document.querySelector('.success-message');
+            if (successMessage) {
+                successMessage.style.opacity = '0';
+                setTimeout(() => successMessage.remove(), 500);
+            }
+        }, 10000);
+        {% endif %}
+    </script>
+</body>
+</html>

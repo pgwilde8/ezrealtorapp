@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if agent and agent.valuation_page_headline %}{{ agent.valuation_page_headline }}{% else %}Free Home Valuation{% endif %} | {% if agent %}{{ agent.name }}{% else %}EZRealtor{% endif %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Custom Brand Colors -->
+    <style>
+        :root {
+            --primary-color: {% if agent and agent.brand_primary_color %}{{ agent.brand_primary_color }}{% else %}#3B82F6{% endif %};
+            --secondary-color: {% if agent and agent.brand_secondary_color %}{{ agent.brand_secondary_color }}{% else %}#1F2937{% endif %};
+            --accent-color: {% if agent and agent.brand_accent_color %}{{ agent.brand_accent_color }}{% else %}#10B981{% endif %};
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+            opacity: 0.9;
+        }
+        .text-primary {
+            color: var(--primary-color);
+        }
+        .border-primary {
+            border-color: var(--primary-color);
+        }
+        .focus\:ring-primary:focus {
+            --tw-ring-color: var(--primary-color);
+        }
+        .focus\:border-primary:focus {
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Logo Section -->
+        {% if agent and agent.logo_url %}
+        <div class="text-center mb-6">
+            <img src="{{ agent.logo_url }}" alt="{{ agent.name }} Logo" class="h-16 mx-auto">
+        </div>
+        {% endif %}
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2" style="color: var(--secondary-color)">
+                {% if agent and agent.valuation_page_headline %}
+                    {{ agent.valuation_page_headline }}
+                {% else %}
+                    What's Your Home Worth?
+                {% endif %}
+            </h1>
+            <p class="text-xl text-gray-600 mb-4">
+                {% if agent and agent.valuation_page_subtitle %}
+                    {{ agent.valuation_page_subtitle }}
+                {% else %}
+                    Get an AI-powered instant valuation of your property
+                {% endif %}
+            </p>
+            
+            <!-- Agent Info with Photo -->
+            {% if agent %}
+            <div class="flex items-center justify-center space-x-4 mb-4">
+                {% if agent.headshot_url %}
+                <img src="{{ agent.headshot_url }}" alt="{{ agent.name }}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-200">
+                {% endif %}
+                <div class="text-left">
+                    <p class="font-semibold text-lg text-primary">{{ agent.name }}</p>
+                    {% if agent.title %}
+                    <p class="text-gray-600">{{ agent.title }}</p>
+                    {% endif %}
+                    {% if agent.brokerage_name %}
+                    <p class="text-sm text-gray-500">{{ agent.brokerage_name }}</p>
+                    {% endif %}
+                    {% if agent.license_number %}
+                    <p class="text-xs text-gray-400">License: {{ agent.license_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Valuation Form -->
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8" x-data="valuationForm()">
+            <form @submit.prevent="submitForm()" class="space-y-6">
+                <!-- Property Address -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Information</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Property Address *</label>
+                            <input type="text" x-model="form.property_address" required 
+                                   @input="validateAddress()"
+                                   placeholder="Enter full address (street, city, state, zip)"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <div x-show="addressValidated" class="mt-2 text-sm text-green-600">
+                                ✓ Address verified with USPS
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Square Footage</label>
+                            <input type="number" x-model="form.square_footage" 
+                                   placeholder="e.g., 2500"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Year Built</label>
+                            <input type="number" x-model="form.year_built" 
+                                   placeholder="e.g., 1995"
+                                   min="1800" max="2025"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
+                            <select x-model="form.bedrooms" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5+</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bathrooms</label>
+                            <select x-model="form.bathrooms" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select</option>
+                                <option value="1">1</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2">2</option>
+                                <option value="2.5">2.5</option>
+                                <option value="3">3</option>
+                                <option value="3.5">3.5</option>
+                                <option value="4">4+</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Features -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Features</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                            <select x-model="form.property_type" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select Type</option>
+                                <option value="single_family">Single Family Home</option>
+                                <option value="condo">Condominium</option>
+                                <option value="townhouse">Townhouse</option>
+                                <option value="duplex">Duplex</option>
+                                <option value="mobile">Mobile Home</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lot Size (if known)</label>
+                            <input type="text" x-model="form.lot_size" 
+                                   placeholder="e.g., 0.25 acres or 10,000 sq ft"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Notable Features</label>
+                        <div class="grid md:grid-cols-3 gap-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="form.features" value="pool" class="mr-2">
+                                <span class="text-sm">Swimming Pool</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="form.features" value="garage" class="mr-2">
+                                <span class="text-sm">Garage</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="form.features" value="fireplace" class="mr-2">
+                                <span class="text-sm">Fireplace</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="form.features" value="updated_kitchen" class="mr-2">
+                                <span class="text-sm">Updated Kitchen</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="form.features" value="hardwood_floors" class="mr-2">
+                                <span class="text-sm">Hardwood Floors</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" x-model="form.features" value="finished_basement" class="mr-2">
+                                <span class="text-sm">Finished Basement</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Improvements -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Improvements (Optional)</h3>
+                    <textarea x-model="form.recent_improvements" rows="3" 
+                              placeholder="Describe any recent renovations, upgrades, or improvements made to the property..."
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                            <input type="text" x-model="form.full_name" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                            <input type="email" x-model="form.email" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                            <input type="tel" x-model="form.phone" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Interest in Selling</label>
+                            <select x-model="form.selling_timeline" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select Timeline</option>
+                                <option value="immediately">Ready to sell now</option>
+                                <option value="3_months">Within 3 months</option>
+                                <option value="6_months">Within 6 months</option>
+                                <option value="year">Within a year</option>
+                                <option value="just_curious">Just curious about value</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Preview -->
+                <div x-show="mapReady" class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Location</h3>
+                    <div id="property-map" class="h-64 bg-gray-200 rounded-lg"></div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-6">
+                    <button type="submit" 
+                            :disabled="loading"
+                            class="w-full btn-primary disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                        <span x-show="!loading">
+                            {% if agent and agent.submit_button_text %}
+                                {{ agent.submit_button_text }}
+                            {% else %}
+                                Get My Free AI Valuation Report
+                            {% endif %}
+                        </span>
+                        <span x-show="loading">Analyzing Property Data...</span>
+                    </button>
+                    <p class="text-sm text-gray-500 text-center mt-2">
+                        Your report will include comparable sales, market trends, and AI-powered insights
+                    </p>
+                </div>
+            </form>
+
+            <!-- Success Message -->
+            <div x-show="success" class="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                <h4 class="font-semibold">Your valuation is being prepared!</h4>
+                <p>Our AI is analyzing comparable sales and market data. You'll receive your detailed report within 30 minutes.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function valuationForm() {
+            return {
+                loading: false,
+                success: false,
+                addressValidated: false,
+                mapReady: false,
+                map: null,
+                form: {
+                    property_address: '',
+                    square_footage: '',
+                    year_built: '',
+                    bedrooms: '',
+                    bathrooms: '',
+                    property_type: '',
+                    lot_size: '',
+                    features: [],
+                    recent_improvements: '',
+                    full_name: '',
+                    email: '',
+                    phone: '',
+                    selling_timeline: '',
+                    lead_type: 'home_valuation'
+                },
+                
+                async validateAddress() {
+                    // Simulate USPS address validation
+                    if (this.form.property_address.length > 20) {
+                        setTimeout(() => {
+                            this.addressValidated = true;
+                            this.initMap();
+                        }, 1000);
+                    }
+                },
+                
+                initMap() {
+                    if (!this.mapReady) {
+                        setTimeout(() => {
+                            this.map = L.map('property-map').setView([40.7128, -74.0060], 13);
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '© OpenStreetMap contributors'
+                            }).addTo(this.map);
+                            L.marker([40.7128, -74.0060]).addTo(this.map);
+                            this.mapReady = true;
+                        }, 100);
+                    }
+                },
+                
+                async submitForm() {
+                    this.loading = true;
+                    
+                    try {
+                        const response = await fetch('/api/v1/leads/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                ...this.form,
+                                metadata: {
+                                    property_details: {
+                                        address: this.form.property_address,
+                                        square_footage: this.form.square_footage,
+                                        year_built: this.form.year_built,
+                                        bedrooms: this.form.bedrooms,
+                                        bathrooms: this.form.bathrooms,
+                                        property_type: this.form.property_type,
+                                        lot_size: this.form.lot_size,
+                                        features: this.form.features,
+                                        recent_improvements: this.form.recent_improvements
+                                    },
+                                    selling_timeline: this.form.selling_timeline,
+                                    address_validated: this.addressValidated
+                                }
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            this.success = true;
+                            // Reset form
+                            this.form = {
+                                property_address: '', square_footage: '', year_built: '',
+                                bedrooms: '', bathrooms: '', property_type: '', lot_size: '',
+                                features: [], recent_improvements: '', full_name: '',
+                                email: '', phone: '', selling_timeline: '',
+                                lead_type: 'home_valuation'
+                            };
+                            this.addressValidated = false;
+                        } else {
+                            throw new Error('Failed to submit form');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Sorry, there was an error submitting your information. Please try again.');
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

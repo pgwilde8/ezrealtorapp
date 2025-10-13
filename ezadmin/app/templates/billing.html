@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing & Subscription - EZRealtor.app</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+            --secondary-color: #f8f9fa;
+            --accent-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), #1e3a72);
+            box-shadow: 0 2px 20px rgba(44, 90, 160, 0.3);
+        }
+
+        .billing-header {
+            background: linear-gradient(135deg, var(--primary-color), #1e3a72);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .plan-card {
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .plan-card.current-plan {
+            border: 3px solid var(--accent-color);
+            position: relative;
+        }
+
+        .plan-card.current-plan::before {
+            content: "Current Plan";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .plan-header {
+            background: linear-gradient(135deg, var(--primary-color), #1e3a72);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .plan-features {
+            padding: 1.5rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-item i {
+            color: var(--accent-color);
+            margin-right: 0.5rem;
+            width: 16px;
+        }
+
+        .usage-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: none;
+        }
+
+        .usage-bar {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color), #20c997);
+            transition: width 0.3s ease;
+        }
+
+        .subscription-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .status-active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .status-trial {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .status-past-due {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-upgrade {
+            background: linear-gradient(135deg, var(--accent-color), #20c997);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-upgrade:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+            color: white;
+        }
+
+        .btn-manage {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-manage:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-home me-2"></i>EZRealtor.app
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/customize">
+                    <i class="fas fa-palette me-1"></i>Customize
+                </a>
+                <a class="nav-link active" href="/billing">
+                    <i class="fas fa-credit-card me-1"></i>Billing
+                </a>
+                <a class="nav-link" href="/config">
+                    <i class="fas fa-cog me-1"></i>Settings
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="billing-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-credit-card me-3"></i>Billing & Subscription
+                    </h1>
+                    <p class="lead mb-0">Manage your subscription and billing settings</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="subscription-status status-trial" id="subscriptionStatus">
+                        Free Trial
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Current Subscription Info -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card usage-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-info-circle me-2"></i>Current Subscription
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Plan: <span id="currentPlan">Free Trial</span></h6>
+                                <p class="text-muted mb-0" id="billingPeriod">Trial expires in 14 days</p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-manage me-2" onclick="openBillingPortal()">
+                                    <i class="fas fa-external-link-alt me-1"></i>Manage Billing
+                                </button>
+                                <button class="btn btn-upgrade" onclick="showUpgradeOptions()">
+                                    <i class="fas fa-arrow-up me-1"></i>Upgrade Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usage Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card usage-card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Leads Captured</h6>
+                        <h4 class="text-primary"><span id="leadsUsed">0</span>/<span id="leadsLimit">10</span></h4>
+                        <div class="usage-bar">
+                            <div class="usage-fill" style="width: 0%" id="leadsBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card usage-card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">AI Summaries</h6>
+                        <h4 class="text-primary"><span id="aiUsed">0</span>/<span id="aiLimit">10</span></h4>
+                        <div class="usage-bar">
+                            <div class="usage-fill" style="width: 0%" id="aiBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card usage-card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Emails Sent</h6>
+                        <h4 class="text-primary"><span id="emailsUsed">0</span>/<span id="emailsLimit">100</span></h4>
+                        <div class="usage-bar">
+                            <div class="usage-fill" style="width: 0%" id="emailsBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card usage-card">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">SMS Sent</h6>
+                        <h4 class="text-primary"><span id="smsUsed">0</span>/<span id="smsLimit">0</span></h4>
+                        <div class="usage-bar">
+                            <div class="usage-fill" style="width: 0%" id="smsBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Plans -->
+        <div class="row mb-5" id="pricingPlans" style="display: none;">
+            <div class="col-12">
+                <h3 class="text-center mb-4">Choose Your Plan</h3>
+            </div>
+            
+            <!-- Plans will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load subscription data
+        async function loadSubscriptionData() {
+            try {
+                const response = await fetch('/api/v1/billing/subscription');
+                const data = await response.json();
+                
+                // Update subscription info
+                document.getElementById('currentPlan').textContent = data.plan_tier;
+                document.getElementById('subscriptionStatus').textContent = data.status;
+                
+                // Update status class
+                const statusElement = document.getElementById('subscriptionStatus');
+                statusElement.className = `subscription-status status-${data.status.toLowerCase()}`;
+                
+            } catch (error) {
+                console.error('Failed to load subscription data:', error);
+            }
+        }
+
+        // Load usage statistics
+        async function loadUsageData() {
+            try {
+                const response = await fetch('/api/v1/billing/usage');
+                const data = await response.json();
+                
+                // Update usage displays
+                updateUsageDisplay('leads', data.leads_captured, data.leads_limit);
+                updateUsageDisplay('ai', data.ai_summaries, data.ai_summaries_limit);
+                updateUsageDisplay('emails', data.emails_sent, data.emails_limit);
+                updateUsageDisplay('sms', data.sms_sent, data.sms_limit);
+                
+            } catch (error) {
+                console.error('Failed to load usage data:', error);
+            }
+        }
+
+        function updateUsageDisplay(type, used, limit) {
+            document.getElementById(`${type}Used`).textContent = used;
+            document.getElementById(`${type}Limit`).textContent = limit === -1 ? '∞' : limit;
+            
+            const percentage = limit === -1 ? 0 : (used / limit) * 100;
+            document.getElementById(`${type}Bar`).style.width = `${Math.min(percentage, 100)}%`;
+        }
+
+        // Load pricing plans
+        async function loadPricingPlans() {
+            try {
+                const response = await fetch('/api/v1/billing/plans');
+                const plans = await response.json();
+                
+                const plansContainer = document.getElementById('pricingPlans');
+                const plansHTML = plans.map(plan => `
+                    <div class="col-md-4 mb-4">
+                        <div class="card plan-card ${plan.tier === 'trial' ? 'current-plan' : ''}">
+                            <div class="plan-header">
+                                <h5 class="mb-0">${plan.name}</h5>
+                                <div class="plan-price">$${plan.price_monthly}<small>/mo</small></div>
+                                ${plan.price_yearly > 0 ? `<small>or $${plan.price_yearly}/year</small>` : ''}
+                            </div>
+                            <div class="plan-features">
+                                ${plan.features.map(feature => `
+                                    <div class="feature-item">
+                                        <i class="fas fa-check"></i>
+                                        <span>${feature}</span>
+                                    </div>
+                                `).join('')}
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-upgrade w-100" 
+                                            onclick="upgradeToPlan('${plan.tier}')"
+                                            ${plan.tier === 'trial' ? 'disabled' : ''}>
+                                        ${plan.tier === 'trial' ? 'Current Plan' : 'Upgrade'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                plansContainer.innerHTML = `
+                    <div class="col-12">
+                        <h3 class="text-center mb-4">Choose Your Plan</h3>
+                    </div>
+                    ${plansHTML}
+                `;
+                
+            } catch (error) {
+                console.error('Failed to load pricing plans:', error);
+            }
+        }
+
+        // Show upgrade options
+        function showUpgradeOptions() {
+            const plansSection = document.getElementById('pricingPlans');
+            if (plansSection.style.display === 'none') {
+                plansSection.style.display = 'block';
+                plansSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                plansSection.style.display = 'none';
+            }
+        }
+
+        // Upgrade to plan
+        async function upgradeToPlan(planTier) {
+            try {
+                const response = await fetch('/api/v1/billing/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        plan_tier: planTier,
+                        billing_cycle: 'monthly'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.checkout_url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Error creating checkout session');
+                }
+                
+            } catch (error) {
+                console.error('Failed to create checkout session:', error);
+                alert('Error upgrading plan');
+            }
+        }
+
+        // Open billing portal
+        async function openBillingPortal() {
+            try {
+                const response = await fetch('/api/v1/billing/portal', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.portal_url) {
+                    // Open billing portal in new tab
+                    window.open(data.portal_url, '_blank');
+                } else {
+                    alert('No billing account found. Please upgrade to a paid plan first.');
+                }
+                
+            } catch (error) {
+                console.error('Failed to open billing portal:', error);
+                alert('Error opening billing portal');
+            }
+        }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSubscriptionData();
+            loadUsageData();
+            loadPricingPlans();
+        });
+    </script>
+</body>
+</html>

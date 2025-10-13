@@ -1,0 +1,19 @@
+[Unit]
+Description=EZRealtor.app - AI-Powered Lead Engine for Realtors
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/ezrealtor/ezadmin
+Environment=PYTHONPATH=/root/ezrealtor/ezadmin
+Environment=DATABASE_URL=postgresql+asyncpg://ezrealtor_user:ezrealtor_pass@localhost:5432/ezrealtor_db
+ExecStart=/root/ezrealtor/ezadmin/venv/bin/python3 app/main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

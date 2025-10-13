@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ agent.custom_page_title or 'Find Your Dream Home' }} | {{ agent.display_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Dynamic Custom CSS -->
+    <style>
+        :root {
+            --primary-color: {{ agent.brand_primary_color or '#3B82F6' }};
+            --secondary-color: {{ agent.brand_secondary_color or '#1F2937' }};
+            --accent-color: {{ agent.brand_accent_color or '#10B981' }};
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+        .text-primary {
+            color: var(--primary-color);
+        }
+        .border-primary {
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body class="min-h-screen" style="background: {{ agent.page_background or 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)' }}">
+    
+    <!-- Custom Header Section -->
+    <div class="container mx-auto px-4 py-8">
+        {% if agent.logo_url %}
+        <div class="text-center mb-6">
+            <img src="{{ agent.logo_url }}" alt="{{ agent.display_name }} Logo" class="h-16 mx-auto">
+        </div>
+        {% endif %}
+        
+        <!-- Custom Hero Section -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2" style="color: var(--secondary-color)">
+                {{ agent.buyer_page_headline or 'Find Your Perfect Home' }}
+            </h1>
+            <p class="text-xl mb-4" style="color: var(--secondary-color)">
+                {{ agent.buyer_page_subtitle or 'Let AI help you discover properties that match your lifestyle' }}
+            </p>
+            
+            {% if agent.headshot_url %}
+            <div class="flex items-center justify-center space-x-4 mb-4">
+                <img src="{{ agent.headshot_url }}" alt="{{ agent.display_name }}" class="w-16 h-16 rounded-full">
+                <div class="text-left">
+                    <p class="font-semibold text-lg">{{ agent.display_name }}</p>
+                    <p class="text-gray-600">{{ agent.title or 'Real Estate Agent' }}</p>
+                    {% if agent.license_number %}
+                    <p class="text-sm text-gray-500">License: {{ agent.license_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if agent.buyer_page_description %}
+            <p class="text-gray-600 max-w-2xl mx-auto">{{ agent.buyer_page_description }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Dynamic Form -->
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8" x-data="buyerForm()">
+            <form @submit.prevent="submitForm()" class="space-y-6">
+                
+                <!-- Custom Pre-Questions -->
+                {% if agent.buyer_custom_questions %}
+                <div class="border-b pb-6">
+                    <h3 class="text-lg font-semibold mb-4" style="color: var(--secondary-color)">Tell Me About Your Home Search</h3>
+                    {% for question in agent.buyer_custom_questions %}
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ question.text }}{% if question.required %} *{% endif %}</label>
+                        {% if question.type == 'text' %}
+                        <input type="text" x-model="form.custom_{{ question.id }}" 
+                               {% if question.required %}required{% endif %}
+                               placeholder="{{ question.placeholder or '' }}"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-primary">
+                        {% elif question.type == 'select' %}
+                        <select x-model="form.custom_{{ question.id }}" 
+                                {% if question.required %}required{% endif %}
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-primary">
+                            <option value="">Select...</option>
+                            {% for option in question.options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                        {% elif question.type == 'textarea' %}
+                        <textarea x-model="form.custom_{{ question.id }}" rows="3"
+                                  {% if question.required %}required{% endif %}
+                                  placeholder="{{ question.placeholder or '' }}"
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-primary"></textarea>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Contact Information -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-4" style="color: var(--secondary-color)">Contact Information</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                            <input type="text" x-model="form.full_name" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ agent.email_field_label or 'Email Address' }} *
+                            </label>
+                            <input type="email" x-model="form.email" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ agent.phone_field_label or 'Phone Number' }} *
+                            </label>
+                            <input type="tel" x-model="form.phone" required 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-primary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
+                            <select x-model="form.budget_range" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:border-primary">
+                                <option value="">Select Budget</option>
+                                {% for range in agent.budget_ranges or default_budget_ranges %}
+                                <option value="{{ range.value }}">{{ range.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Preferences (conditionally shown) -->
+                {% if not agent.hide_property_preferences %}
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold mb-4" style="color: var(--secondary-color)">
+                        {{ agent.preferences_section_title or 'Property Preferences' }}
+                    </h3>
+                    <!-- Standard property fields... -->
+                </div>
+                {% endif %}
+
+                <!-- Custom CTA -->
+                <div class="pt-6">
+                    <button type="submit" 
+                            :disabled="loading"
+                            class="w-full btn-primary hover:opacity-90 disabled:opacity-50 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                        <span x-show="!loading">{{ agent.submit_button_text or 'Get My Personalized Home Matches' }}</span>
+                        <span x-show="loading">{{ agent.loading_text or 'Processing with AI...' }}</span>
+                    </button>
+                    
+                    {% if agent.disclaimer_text %}
+                    <p class="text-sm text-gray-500 text-center mt-2">{{ agent.disclaimer_text }}</p>
+                    {% endif %}
+                </div>
+            </form>
+
+            <!-- Custom Success Message -->
+            <div x-show="success" class="mt-6 p-4 rounded-lg" style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-color); color: var(--accent-color)">
+                <h4 class="font-semibold">{{ agent.success_title or 'Thank you for your interest!' }}</h4>
+                <p>{{ agent.success_message or 'Our AI is analyzing your preferences and we\'ll send you personalized property matches within 24 hours.' }}</p>
+            </div>
+        </div>
+
+        <!-- Custom Footer -->
+        {% if agent.footer_text or agent.social_links %}
+        <div class="text-center mt-8 pt-8 border-t">
+            {% if agent.footer_text %}
+            <p class="text-gray-600 mb-4">{{ agent.footer_text }}</p>
+            {% endif %}
+            
+            {% if agent.social_links %}
+            <div class="flex justify-center space-x-4">
+                {% for social in agent.social_links %}
+                <a href="{{ social.url }}" target="_blank" class="text-gray-500 hover:text-primary">
+                    <!-- Social icons would go here -->
+                    {{ social.platform }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function buyerForm() {
+            return {
+                loading: false,
+                success: false,
+                form: {
+                    full_name: '',
+                    email: '',
+                    phone: '',
+                    budget_range: '',
+                    lead_type: 'buyer_interest'
+                    // Custom fields added dynamically
+                },
+                
+                async submitForm() {
+                    this.loading = true;
+                    
+                    try {
+                        const response = await fetch('/api/v1/leads/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(this.form)
+                        });
+                        
+                        if (response.ok) {
+                            this.success = true;
+                            // Custom tracking if configured
+                            {% if agent.google_analytics_id %}
+                            gtag('event', 'lead_submission', {
+                                'custom_parameter': 'buyer_interest'
+                            });
+                            {% endif %}
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('{{ agent.error_message or "Sorry, there was an error submitting your information. Please try again." }}');
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

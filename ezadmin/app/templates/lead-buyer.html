@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if agent and agent.buyer_page_headline %}{{ agent.buyer_page_headline }}{% else %}Find Your Dream Home{% endif %} | {% if agent %}{{ agent.name }}{% else %}EZRealtor{% endif %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Custom Brand Colors -->
+    <style>
+        :root {
+            --primary-color: {% if agent and agent.brand_primary_color %}{{ agent.brand_primary_color }}{% else %}#3B82F6{% endif %};
+            --secondary-color: {% if agent and agent.brand_secondary_color %}{{ agent.brand_secondary_color }}{% else %}#1F2937{% endif %};
+            --accent-color: {% if agent and agent.brand_accent_color %}{{ agent.brand_accent_color }}{% else %}#10B981{% endif %};
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+            opacity: 0.9;
+        }
+        .text-primary {
+            color: var(--primary-color);
+        }
+        .border-primary {
+            border-color: var(--primary-color);
+        }
+        .focus\:ring-primary:focus {
+            --tw-ring-color: var(--primary-color);
+        }
+        .focus\:border-primary:focus {
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Logo Section -->
+        {% if agent and agent.logo_url %}
+        <div class="text-center mb-6">
+            <img src="{{ agent.logo_url }}" alt="{{ agent.name }} Logo" class="h-16 mx-auto">
+        </div>
+        {% endif %}
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2" style="color: var(--secondary-color)">
+                {% if agent and agent.buyer_page_headline %}
+                    {{ agent.buyer_page_headline }}
+                {% else %}
+                    Find Your Perfect Home
+                {% endif %}
+            </h1>
+            <p class="text-xl text-gray-600 mb-4">
+                {% if agent and agent.buyer_page_subtitle %}
+                    {{ agent.buyer_page_subtitle }}
+                {% else %}
+                    Let AI help you discover properties that match your lifestyle
+                {% endif %}
+            </p>
+            
+            <!-- Agent Info with Photo -->
+            {% if agent %}
+            <div class="flex items-center justify-center space-x-4 mb-4">
+                {% if agent.headshot_url %}
+                <img src="{{ agent.headshot_url }}" alt="{{ agent.name }}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-200">
+                {% endif %}
+                <div class="text-left">
+                    <p class="font-semibold text-lg text-primary">{{ agent.name }}</p>
+                    {% if agent.title %}
+                    <p class="text-gray-600">{{ agent.title }}</p>
+                    {% endif %}
+                    {% if agent.brokerage_name %}
+                    <p class="text-sm text-gray-500">{{ agent.brokerage_name }}</p>
+                    {% endif %}
+                    {% if agent.license_number %}
+                    <p class="text-xs text-gray-400">License: {{ agent.license_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Lead Capture Form -->
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8" x-data="buyerForm()">
+            <form @submit.prevent="submitForm()" class="space-y-6">
+                <!-- Personal Information -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" x-model="form.full_name" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                        <input type="email" x-model="form.email" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                        <input type="tel" x-model="form.phone" required 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Budget Range</label>
+                        <select x-model="form.budget_range" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="">Select Budget</option>
+                            <option value="under_200k">Under $200,000</option>
+                            <option value="200k_400k">$200,000 - $400,000</option>
+                            <option value="400k_600k">$400,000 - $600,000</option>
+                            <option value="600k_800k">$600,000 - $800,000</option>
+                            <option value="800k_1m">$800,000 - $1,000,000</option>
+                            <option value="over_1m">Over $1,000,000</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Property Preferences -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Property Preferences</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bedrooms</label>
+                            <select x-model="form.bedrooms" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Any</option>
+                                <option value="1">1+</option>
+                                <option value="2">2+</option>
+                                <option value="3">3+</option>
+                                <option value="4">4+</option>
+                                <option value="5">5+</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bathrooms</label>
+                            <select x-model="form.bathrooms" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Any</option>
+                                <option value="1">1+</option>
+                                <option value="2">2+</option>
+                                <option value="3">3+</option>
+                                <option value="4">4+</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                            <select x-model="form.property_type" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Any Type</option>
+                                <option value="house">House</option>
+                                <option value="condo">Condo</option>
+                                <option value="townhouse">Townhouse</option>
+                                <option value="apartment">Apartment</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Preferences -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Location & Lifestyle</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Preferred Areas/Cities</label>
+                            <textarea x-model="form.preferred_areas" rows="3" 
+                                      placeholder="e.g., Downtown, Suburb neighborhoods, specific zip codes..."
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lifestyle Priorities</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" x-model="form.priorities" value="schools" class="mr-2">
+                                    <span class="text-sm">Good School Districts</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" x-model="form.priorities" value="commute" class="mr-2">
+                                    <span class="text-sm">Short Commute</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" x-model="form.priorities" value="amenities" class="mr-2">
+                                    <span class="text-sm">Shopping & Dining</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" x-model="form.priorities" value="parks" class="mr-2">
+                                    <span class="text-sm">Parks & Recreation</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Assistant Questions -->
+                <div class="border-t pt-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Tell Us More (AI Assistant)</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">What's most important in your next home?</label>
+                            <textarea x-model="form.important_features" rows="3" 
+                                      placeholder="Describe what features, amenities, or characteristics matter most to you..."
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Timeline to Purchase</label>
+                            <select x-model="form.timeline" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">Select Timeline</option>
+                                <option value="asap">Ready to buy immediately</option>
+                                <option value="1_3_months">1-3 months</option>
+                                <option value="3_6_months">3-6 months</option>
+                                <option value="6_12_months">6-12 months</option>
+                                <option value="over_year">More than a year</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-6">
+                    <button type="submit" 
+                            :disabled="loading"
+                            class="w-full btn-primary disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+                        <span x-show="!loading">
+                            {% if agent and agent.submit_button_text %}
+                                {{ agent.submit_button_text }}
+                            {% else %}
+                                Get My Personalized Home Matches
+                            {% endif %}
+                        </span>
+                        <span x-show="loading">Processing with AI...</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Success Message -->
+            <div x-show="success" class="mt-6 p-4 rounded-lg" style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-color); color: var(--accent-color);">
+                <h4 class="font-semibold">Thank you for your interest!</h4>
+                <p>
+                    {% if agent and agent.success_message %}
+                        {{ agent.success_message }}
+                    {% else %}
+                        Our AI is analyzing your preferences and we'll send you personalized property matches within 24 hours.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Agent Contact Footer -->
+        {% if agent and (agent.website_url or agent.facebook_url or agent.instagram_url or agent.linkedin_url) %}
+        <div class="text-center mt-8 pt-8 border-t border-gray-200">
+            <p class="text-gray-600 mb-4">Connect with {{ agent.name }}</p>
+            <div class="flex justify-center space-x-4">
+                {% if agent.website_url %}
+                <a href="{{ agent.website_url }}" target="_blank" class="text-gray-500 hover:text-primary transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="sr-only">Website</span>
+                </a>
+                {% endif %}
+                {% if agent.facebook_url %}
+                <a href="{{ agent.facebook_url }}" target="_blank" class="text-gray-500 hover:text-primary transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M20 10c0-5.523-4.477-10-10-10S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V10h2.54V7.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V10h2.773l-.443 2.89h-2.33v6.988C16.343 19.128 20 14.991 20 10z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="sr-only">Facebook</span>
+                </a>
+                {% endif %}
+                {% if agent.instagram_url %}
+                <a href="{{ agent.instagram_url }}" target="_blank" class="text-gray-500 hover:text-primary transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="sr-only">Instagram</span>
+                </a>
+                {% endif %}
+                {% if agent.linkedin_url %}
+                <a href="{{ agent.linkedin_url }}" target="_blank" class="text-gray-500 hover:text-primary transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.711zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="sr-only">LinkedIn</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function buyerForm() {
+            return {
+                loading: false,
+                success: false,
+                form: {
+                    full_name: '',
+                    email: '',
+                    phone: '',
+                    budget_range: '',
+                    bedrooms: '',
+                    bathrooms: '',
+                    property_type: '',
+                    preferred_areas: '',
+                    priorities: [],
+                    important_features: '',
+                    timeline: '',
+                    lead_type: 'buyer_interest'
+                },
+                
+                async submitForm() {
+                    this.loading = true;
+                    
+                    try {
+                        const response = await fetch('/api/v1/leads/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                ...this.form,
+                                metadata: {
+                                    priorities: this.form.priorities,
+                                    budget_range: this.form.budget_range,
+                                    preferences: {
+                                        bedrooms: this.form.bedrooms,
+                                        bathrooms: this.form.bathrooms,
+                                        property_type: this.form.property_type,
+                                        preferred_areas: this.form.preferred_areas,
+                                        important_features: this.form.important_features,
+                                        timeline: this.form.timeline
+                                    }
+                                }
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            this.success = true;
+                            // Reset form
+                            this.form = {
+                                full_name: '', email: '', phone: '', budget_range: '',
+                                bedrooms: '', bathrooms: '', property_type: '',
+                                preferred_areas: '', priorities: [], important_features: '',
+                                timeline: '', lead_type: 'buyer_interest'
+                            };
+                        } else {
+                            throw new Error('Failed to submit form');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Sorry, there was an error submitting your information. Please try again.');
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
