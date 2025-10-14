@@ -36,6 +36,7 @@ class Agent(Base):
     
     # Authentication fields
     password_hash = Column(String(255))  # bcrypt hash
+    google_id = Column(String(100), index=True, unique=True)  # Google OAuth sub
     last_login_at = Column(DateTime(timezone=True))
     email_verified = Column(Boolean, default=False)
     

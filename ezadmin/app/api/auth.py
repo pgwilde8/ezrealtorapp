@@ -49,6 +49,10 @@ class LoginRequest(BaseModel):
 class MagicLinkRequest(BaseModel):
     email: EmailStr
 
+class GoogleAuthRequest(BaseModel):
+    credential: str  # Google ID token
+    redirect_to: Optional[str] = None
+
 class PasswordResetRequest(BaseModel):
     email: EmailStr
 
@@ -368,6 +372,209 @@ async def get_current_agent(
         
     except Exception as e:
         raise HTTPException(status_code=401, detail="Invalid authentication")
+
+# Google OAuth Endpoints
+@router.get("/google/login")
+async def google_login(redirect_to: Optional[str] = None):
+    """Initiate Google OAuth login"""
+    
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+    
+    # Create Google OAuth flow
+    flow = Flow.from_client_config(
+        {
+            "web": {
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [GOOGLE_REDIRECT_URI]
+            }
+        },
+        scopes=["openid", "email", "profile"]
+    )
+    
+    flow.redirect_uri = GOOGLE_REDIRECT_URI
+    
+    # Add state parameter to track redirect destination
+    state = redirect_to if redirect_to else "dashboard"
+    
+    authorization_url, _ = flow.authorization_url(
+        access_type="offline",
+        include_granted_scopes="true",
+        state=state
+    )
+    
+    return RedirectResponse(url=authorization_url)
+
+@router.get("/google/callback")
+async def google_callback(
+    request: Request,
+    code: str,
+    state: Optional[str] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """Handle Google OAuth callback"""
+    
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+    
+    try:
+        # Create Google OAuth flow
+        flow = Flow.from_client_config(
+            {
+                "web": {
+                    "client_id": GOOGLE_CLIENT_ID,
+                    "client_secret": GOOGLE_CLIENT_SECRET,
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "redirect_uris": [GOOGLE_REDIRECT_URI]
+                }
+            },
+            scopes=["openid", "email", "profile"]
+        )
+        
+        flow.redirect_uri = GOOGLE_REDIRECT_URI
+        
+        # Exchange authorization code for tokens
+        flow.fetch_token(code=code)
+        
+        # Get user info from Google
+        credentials = flow.credentials
+        user_info_request = GoogleRequest()
+        id_info = id_token.verify_oauth2_token(
+            credentials.id_token,
+            user_info_request,
+            GOOGLE_CLIENT_ID
+        )
+        
+        # Extract user information
+        email = id_info.get("email")
+        first_name = id_info.get("given_name", "")
+        last_name = id_info.get("family_name", "")
+        google_id = id_info.get("sub")
+        
+        if not email:
+            raise HTTPException(status_code=400, detail="Email not provided by Google")
+        
+        # Find or create agent
+        result = await db.execute(select(Agent).where(Agent.email == email.lower()))
+        agent = result.scalar_one_or_none()
+        
+        if not agent:
+            # For security, don't auto-create accounts via Google OAuth
+            # Redirect to registration or show error
+            return RedirectResponse(
+                url=f"https://login.ezrealtor.app?error=account_not_found&email={email}",
+                status_code=302
+            )
+        
+        # Update agent with Google ID if not set
+        if not agent.google_id:
+            agent.google_id = google_id
+        
+        # Update last login
+        agent.last_login_at = datetime.utcnow()
+        await db.commit()
+        
+        # Create session token
+        session_token = create_access_token({"sub": str(agent.id), "type": "access"})
+        
+        # Determine redirect URL
+        if state and state != "dashboard":
+            redirect_url = f"https://{state}.ezrealtor.app/dashboard"
+        else:
+            redirect_url = f"https://{agent.slug}.ezrealtor.app/dashboard"
+        
+        # Set session cookie and redirect
+        response = RedirectResponse(url=redirect_url, status_code=302)
+        response.set_cookie(
+            key="session_token",
+            value=session_token,
+            max_age=30 * 24 * 60 * 60,  # 30 days
+            httponly=True,
+            secure=True,
+            samesite="lax"
+        )
+        
+        return response
+        
+    except Exception as e:
+        print(f"Google OAuth error: {e}")
+        return RedirectResponse(
+            url="https://login.ezrealtor.app?error=oauth_failed",
+            status_code=302
+        )
+
+@router.post("/google/verify")
+async def google_verify_token(
+    auth_data: GoogleAuthRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Verify Google ID token for frontend login"""
+    
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+    
+    try:
+        # Verify the Google ID token
+        request_adapter = GoogleRequest()
+        id_info = id_token.verify_oauth2_token(
+            auth_data.credential,
+            request_adapter,
+            GOOGLE_CLIENT_ID
+        )
+        
+        # Extract user information
+        email = id_info.get("email")
+        first_name = id_info.get("given_name", "")
+        last_name = id_info.get("family_name", "")
+        google_id = id_info.get("sub")
+        
+        if not email:
+            raise HTTPException(status_code=400, detail="Email not provided by Google")
+        
+        # Find agent by email
+        result = await db.execute(select(Agent).where(Agent.email == email.lower()))
+        agent = result.scalar_one_or_none()
+        
+        if not agent:
+            raise HTTPException(
+                status_code=404,
+                detail="Account not found. Please contact support to set up your EZRealtor account."
+            )
+        
+        # Update agent with Google ID if not set
+        if not agent.google_id:
+            agent.google_id = google_id
+        
+        # Update last login
+        agent.last_login_at = datetime.utcnow()
+        await db.commit()
+        
+        # Create access token
+        access_token = create_access_token({"sub": str(agent.id), "type": "access"})
+        
+        # Determine redirect URL
+        if auth_data.redirect_to:
+            redirect_url = f"https://{auth_data.redirect_to}.ezrealtor.app/dashboard"
+        else:
+            redirect_url = f"https://{agent.slug}.ezrealtor.app/dashboard"
+        
+        return LoginResponse(
+            access_token=access_token,
+            token_type="bearer",
+            agent_id=str(agent.id),
+            agent_slug=agent.slug,
+            redirect_url=redirect_url
+        )
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Invalid Google token")
+    except Exception as e:
+        print(f"Google token verification error: {e}")
+        raise HTTPException(status_code=500, detail="Authentication failed")
 
 # Optional auth (for routes that work with or without auth)
 async def get_current_agent_optional(
