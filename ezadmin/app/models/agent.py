@@ -8,11 +8,14 @@ from sqlalchemy.sql import func
 from app.utils.database import Base
 import uuid
 import enum
-
+# Update /root/ezrealtor/ezadmin/app/models/agent.py
 class PlanTier(str, enum.Enum):
     TRIAL = "trial"
+    STARTER = "starter"  
+    GROWTH = "growth"
+    SCALE = "scale"
     PRO = "pro"
-    ENTERPRISE = "enterprise"
+
 
 class AgentStatus(str, enum.Enum):
     ACTIVE = "active"

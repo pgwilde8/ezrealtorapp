@@ -23,9 +23,11 @@ class BillingService:
     
     def __init__(self):
         self.price_ids = {
-            PlanTier.TRIAL: os.getenv("STRIPE_FREE_PRICE_ID"),
-            PlanTier.PRO: os.getenv("STRIPE_BASIC_PRICE_ID"), 
-            PlanTier.ENTERPRISE: os.getenv("STRIPE_PRO_PRICE_ID"),
+            PlanTier.TRIAL: os.getenv("STRIPE_TRIAL_PRICE_ID"),
+            PlanTier.STARTER: os.getenv("STRIPE_STARTER_PRICE_ID"), 
+            PlanTier.GROWTH: os.getenv("STRIPE_GROWTH_PRICE_ID"),
+            PlanTier.SCALE: os.getenv("STRIPE_SCALE_PRICE_ID"),
+            PlanTier.PRO: os.getenv("STRIPE_PRO_PRICE_ID"),
         }
     
     async def create_customer(self, agent: Agent) -> str:
@@ -203,8 +205,10 @@ class BillingService:
         """Get plan name from Stripe price ID"""
         price_to_name = {
             self.price_ids[PlanTier.TRIAL]: "Trial",
+            self.price_ids[PlanTier.STARTER]: "Starter",
+            self.price_ids[PlanTier.GROWTH]: "Growth",
+            self.price_ids[PlanTier.SCALE]: "Scale",
             self.price_ids[PlanTier.PRO]: "Pro",
-            self.price_ids[PlanTier.ENTERPRISE]: "Enterprise",
         }
         
         return price_to_name.get(price_id, "Unknown")

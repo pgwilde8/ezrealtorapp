@@ -6,6 +6,12 @@
     <title>Pricing - EZRealtor.app</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://js.stripe.com/v3/"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
@@ -13,42 +19,397 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-indigo-600">EZRealtor.app</a>
+                    <a href="/" class="text-2xl font-bold text-blue-600">
+                        <i class="fas fa-home mr-2"></i>EZRealtor.app
+                    </a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="https://login.ezrealtor.app" class="text-indigo-600 hover:text-indigo-800 px-3 py-2 rounded-md text-sm font-medium">Login</a>
+                    <a href="https://login.ezrealtor.app" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">Login</a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Pricing Section -->
-    <section class="py-20">
+    <!-- Hero Section -->
+    <section class="gradient-bg py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+            <h1 class="text-5xl font-bold mb-6">Simple, Lead-Based Pricing</h1>
+            <p class="text-xl mb-8 max-w-3xl mx-auto">
+                Choose by leads per month. Get bigger bundles as you grow. 
+                <strong>Auto-bump protection</strong> ensures you never miss a lead.
+            </p>
+            <div class="bg-white/20 rounded-lg p-4 inline-block">
+                <p class="text-lg">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    <strong>Guarantee:</strong> 1 tier max/month • Pro-rated billing • One forgiveness per quarter
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Cards -->
+    <section class="py-20 -mt-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h1 class="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
-                <p class="text-xl text-gray-600">Start capturing leads today with our AI-powered platform</p>
+            <div class="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
+                
+                <!-- Starter Plan -->
+                <div class="bg-white border-2 border-blue-200 rounded-2xl p-8 shadow-xl relative">
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                        <span class="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                            <i class="fas fa-rocket mr-1"></i>Most Popular
+                        </span>
+                    </div>
+                    
+                    <div class="text-center mb-8">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
+                        <div class="text-5xl font-bold text-blue-600 mb-2">$97</div>
+                        <p class="text-gray-600">per month</p>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <div class="text-3xl font-bold text-gray-900 mb-1">150</div>
+                        <p class="text-gray-600">leads per month</p>
+                    </div>
+                    
+                    <div class="space-y-4 mb-8">
+                        <h4 class="font-semibold text-gray-900">Pooled Bundle Includes:</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                            <div><i class="fas fa-envelope text-blue-500 mr-2"></i>600 emails</div>
+                            <div><i class="fas fa-sms text-green-500 mr-2"></i>180 SMS</div>
+                            <div><i class="fas fa-phone text-purple-500 mr-2"></i>40 call minutes</div>
+                            <div><i class="fas fa-brain text-orange-500 mr-2"></i>0.8M AI tokens</div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="startCheckout('starter')" 
+                            class="w-full bg-blue-600 text-white hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition duration-300 mb-4">
+                        Start with Starter
+                    </button>
+                    
+                    <p class="text-xs text-gray-500 text-center">
+                        Hit the limit? Auto-bump to Growth and pro-rate the difference.
+                    </p>
+                </div>
+
+                <!-- Growth Plan -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
+                    <div class="text-center mb-8">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Growth</h3>
+                        <div class="text-5xl font-bold text-green-600 mb-2">$147</div>
+                        <p class="text-gray-600">per month</p>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <div class="text-3xl font-bold text-gray-900 mb-1">500</div>
+                        <p class="text-gray-600">leads per month</p>
+                    </div>
+                    
+                    <div class="space-y-4 mb-8">
+                        <h4 class="font-semibold text-gray-900">Pooled Bundle Includes:</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                            <div><i class="fas fa-envelope text-blue-500 mr-2"></i>2,500 emails</div>
+                            <div><i class="fas fa-sms text-green-500 mr-2"></i>700 SMS</div>
+                            <div><i class="fas fa-phone text-purple-500 mr-2"></i>120 call minutes</div>
+                            <div><i class="fas fa-brain text-orange-500 mr-2"></i>3M AI tokens</div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="startCheckout('growth')" 
+                            class="w-full bg-green-600 text-white hover:bg-green-700 px-6 py-3 rounded-lg font-semibold transition duration-300 mb-4">
+                        Choose Growth
+                    </button>
+                    
+                    <p class="text-xs text-gray-500 text-center">
+                        Same auto-bump protection with one forgiveness per quarter.
+                    </p>
+                </div>
+
+                <!-- Scale Plan -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
+                    <div class="text-center mb-8">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Scale</h3>
+                        <div class="text-5xl font-bold text-purple-600 mb-2">$237</div>
+                        <p class="text-gray-600">per month</p>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <div class="text-3xl font-bold text-gray-900 mb-1">1,500</div>
+                        <p class="text-gray-600">leads per month</p>
+                    </div>
+                    
+                    <div class="space-y-4 mb-8">
+                        <h4 class="font-semibold text-gray-900">Pooled Bundle Includes:</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                            <div><i class="fas fa-envelope text-blue-500 mr-2"></i>6,000 emails</div>
+                            <div><i class="fas fa-sms text-green-500 mr-2"></i>2,000 SMS</div>
+                            <div><i class="fas fa-phone text-purple-500 mr-2"></i>400 call minutes</div>
+                            <div><i class="fas fa-brain text-orange-500 mr-2"></i>9M AI tokens</div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="startCheckout('scale')" 
+                            class="w-full bg-purple-600 text-white hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold transition duration-300 mb-4">
+                        Choose Scale
+                    </button>
+                    
+                    <p class="text-xs text-gray-500 text-center">
+                        Perfect for growing teams and high-volume agents.
+                    </p>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
+                    <div class="text-center mb-8">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
+                        <div class="text-5xl font-bold text-indigo-600 mb-2">$437</div>
+                        <p class="text-gray-600">per month</p>
+                        <span class="text-xs text-gray-500">(optional)</span>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <div class="text-3xl font-bold text-gray-900 mb-1">4,000</div>
+                        <p class="text-gray-600">leads per month</p>
+                    </div>
+                    
+                    <div class="space-y-4 mb-8">
+                        <h4 class="font-semibold text-gray-900">Pooled Bundle Includes:</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                            <div><i class="fas fa-envelope text-blue-500 mr-2"></i>15,000 emails</div>
+                            <div><i class="fas fa-sms text-green-500 mr-2"></i>5,000 SMS</div>
+                            <div><i class="fas fa-phone text-purple-500 mr-2"></i>1,000 call minutes</div>
+                            <div><i class="fas fa-brain text-orange-500 mr-2"></i>25M AI tokens</div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="startCheckout('pro')" 
+                            class="w-full bg-indigo-600 text-white hover:bg-indigo-700 px-6 py-3 rounded-lg font-semibold transition duration-300 mb-4">
+                        Choose Pro
+                    </button>
+                    
+                    <p class="text-xs text-gray-500 text-center">
+                        For enterprise teams and brokerages.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Auto-Bump Protection Features -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Auto-Bump Protection System</h2>
+                <p class="text-xl text-gray-600">Never miss a lead. Never get surprised by bills.</p>
             </div>
             
-            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <!-- Trial Plan -->
-                <div class="bg-white border border-gray-200 rounded-xl p-8 shadow-lg">
-                    <div class="text-center">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Free Trial</h3>
-                        <div class="text-4xl font-bold text-gray-900 mb-4">$0</div>
-                        <p class="text-gray-600 mb-6">14 days to test everything</p>
-                        <button onclick="startCheckout('trial')" class="w-full bg-gray-600 text-white hover:bg-gray-700 px-6 py-3 rounded-lg font-semibold transition duration-300">
-                            Start Free Trial
-                        </button>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bell text-yellow-600 text-2xl"></i>
                     </div>
-                    <ul class="mt-8 space-y-4">
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Up to 10 leads
-                        </li>
-                        <li class="flex items-center text-gray-600">
+                    <h3 class="text-lg font-semibold mb-2">Smart Alerts</h3>
+                    <p class="text-gray-600">Get notified at 80% and 95% of your lead cap with upgrade options.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-arrow-up text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Auto-Bump Protection</h3>
+                    <p class="text-gray-600">Hit your limit? We'll finish the month in the next tier (max 1 tier/month, pro-rated).</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-undo text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-2">Forgiveness System</h3>
+                    <p class="text-gray-600">One forgiveness per quarter - drop back if the spike was temporary.</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 bg-gray-50 rounded-xl p-8">
+                <div class="max-w-3xl mx-auto text-center">
+                    <h3 class="text-xl font-semibold mb-4">Want Control? Enable "Pause at Cap"</h3>
+                    <p class="text-gray-600 mb-4">
+                        Prefer to manually upgrade? Toggle "Pause at cap" in settings. 
+                        We'll pause lead processing instead of auto-bumping.
+                    </p>
+                    <div class="inline-flex items-center bg-white px-4 py-2 rounded-lg shadow">
+                        <i class="fas fa-cog text-gray-400 mr-2"></i>
+                        <span class="text-sm text-gray-700">Available in dashboard settings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add-ons Section -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Power-ups & Add-ons</h2>
+                <p class="text-xl text-gray-600">Extend your plan with targeted boosters</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-lg p-6 shadow-md">
+                    <div class="text-center">
+                        <i class="fas fa-calendar-weekend text-orange-500 text-3xl mb-3"></i>
+                        <h3 class="font-semibold mb-2">Weekend Boost</h3>
+                        <div class="text-2xl font-bold text-orange-600 mb-2">$49</div>
+                        <p class="text-sm text-gray-600">+300 SMS + 60 call minutes (Fri-Sun only). Perfect for open houses!</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-6 shadow-md">
+                    <div class="text-center">
+                        <i class="fas fa-plus-circle text-blue-500 text-3xl mb-3"></i>
+                        <h3 class="font-semibold mb-2">Extra Page</h3>
+                        <div class="text-2xl font-bold text-blue-600 mb-2">$29<span class="text-sm">/mo</span></div>
+                        <p class="text-sm text-gray-600">Add another lead capture page. Shares your pooled quotas.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-6 shadow-md">
+                    <div class="text-center">
+                        <i class="fas fa-server text-purple-500 text-3xl mb-3"></i>
+                        <h3 class="font-semibold mb-2">Dedicated Email IP</h3>
+                        <div class="text-2xl font-bold text-purple-600 mb-2">$39<span class="text-sm">/mo</span></div>
+                        <p class="text-sm text-gray-600">Improve deliverability with your own email sending IP.</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-6 shadow-md">
+                    <div class="text-center">
+                        <i class="fas fa-paint-brush text-green-500 text-3xl mb-3"></i>
+                        <h3 class="font-semibold mb-2">White-label</h3>
+                        <div class="text-2xl font-bold text-green-600 mb-2">$49<span class="text-sm">/mo</span></div>
+                        <p class="text-sm text-gray-600">Custom domain and branding. Remove EZRealtor references.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
+            </div>
+            
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">What happens if I hit my lead limit?</h3>
+                    <p class="text-gray-600">You'll get alerts at 80% and 95%. If you hit the limit, we'll automatically bump you to the next tier for the remainder of the month and pro-rate the difference. Maximum 1 tier increase per month.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I prevent auto-bumping?</h3>
+                    <p class="text-gray-600">Yes! Toggle "Pause at cap" in your dashboard settings. We'll pause lead processing instead of upgrading automatically. You can then manually upgrade or wait until next month.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">What's the forgiveness system?</h3>
+                    <p class="text-gray-600">Once per quarter, you can drop back to your previous tier if an auto-bump was due to a temporary spike. Perfect for seasonal fluctuations.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Are the bundles guaranteed?</h3>
+                    <p class="text-gray-600">Bundles are processing limits, not guarantees of visitors or leads. All resources (emails, SMS, voice, AI tokens) are pooled across your pages and reset monthly.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I downgrade my plan?</h3>
+                    <p class="text-gray-600">Yes! If your usage stays below 60% of your current tier for 2 consecutive months, we'll suggest a downgrade option for your next billing cycle.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 gradient-bg">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+            <h2 class="text-3xl font-bold mb-6">Ready to Start Capturing Leads?</h2>
+            <p class="text-xl mb-8">
+                Join thousands of realtors using AI-powered lead generation. 
+                Start with our 14-day free trial.
+            </p>
+            <button onclick="startCheckout('trial')" 
+                    class="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold text-lg transition duration-300">
+                <i class="fas fa-rocket mr-2"></i>Start Free Trial
+            </button>
+            <p class="text-sm mt-4 opacity-90">No credit card required • Full access • 50 trial leads included</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">EZRealtor.app</h3>
+                    <p class="text-gray-400">AI-powered lead generation for modern realtors.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Product</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Features</a></li>
+                        <li><a href="#" class="hover:text-white">Pricing</a></li>
+                        <li><a href="#" class="hover:text-white">Integrations</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white">Status</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 EZRealtor.app. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const stripe = Stripe('pk_test_51SDNxERzRv6CTjxRe2DHaPPldl7Ra7CppcLcGSDcAEVGuy25h3klPY2a6vA6XChhLTZVYTaHHZtINNL2l4sKuBOl00p0YjvxpW');
+
+        async function startCheckout(plan) {
+            try {
+                const response = await fetch('/api/v1/checkout/create-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ plan: plan })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    window.location.href = data.checkout_url;
+                } else {
+                    // Redirect to login if not authenticated
+                    window.location.href = 'https://login.ezrealtor.app?redirect_to=pricing';
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Something went wrong. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
                             <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                             </svg>

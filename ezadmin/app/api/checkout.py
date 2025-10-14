@@ -56,10 +56,14 @@ async def checkout_success(
         actual_plan_tier = PlanTier.TRIAL  # default
         for item in subscription['items']['data']:
             price_id = item['price']['id']
-            if price_id == os.getenv('STRIPE_CONCIERGE_PRICE_ID'):
-                actual_plan_tier = PlanTier.PRO  # Map Concierge to PRO
-            elif price_id == os.getenv('STRIPE_CONCIERGE_PLUS_PRICE_ID'):
-                actual_plan_tier = PlanTier.ENTERPRISE  # Map Concierge Plus to ENTERPRISE
+            if price_id == os.getenv('STRIPE_STARTER_PRICE_ID'):
+                actual_plan_tier = PlanTier.STARTER
+            elif price_id == os.getenv('STRIPE_GROWTH_PRICE_ID'):
+                actual_plan_tier = PlanTier.GROWTH
+            elif price_id == os.getenv('STRIPE_SCALE_PRICE_ID'):
+                actual_plan_tier = PlanTier.SCALE
+            elif price_id == os.getenv('STRIPE_PRO_PRICE_ID'):
+                actual_plan_tier = PlanTier.PRO
             elif price_id == os.getenv('STRIPE_FREE_PRICE_ID'):
                 actual_plan_tier = PlanTier.TRIAL
         
@@ -186,22 +190,24 @@ async def create_checkout_session(
     plan_data: dict,
     db: AsyncSession = Depends(get_db)
 ):
-    """Create Stripe checkout session for Concierge plans"""
+    """Create Stripe checkout session for tiered lead-based plans"""
     from app.middleware.auth import get_current_agent
     
     current_agent = await get_current_agent(request, db)
     if not current_agent:
         raise HTTPException(status_code=401, detail="Authentication required")
     
-    plan = plan_data.get("plan", "concierge")
+    plan = plan_data.get("plan", "starter")
     
     # Map plan to Stripe price ID
-    price_id_map = {
-        "concierge": os.getenv('STRIPE_CONCIERGE_PRICE_ID'),
-        "concierge_plus": os.getenv('STRIPE_CONCIERGE_PLUS_PRICE_ID')
+    STRIPE_PLAN_MAPPING = {
+        "starter": os.getenv('STRIPE_STARTER_PRICE_ID'),
+        "growth": os.getenv('STRIPE_GROWTH_PRICE_ID'), 
+        "scale": os.getenv('STRIPE_SCALE_PRICE_ID'),
+        "pro": os.getenv('STRIPE_PRO_PRICE_ID'),
     }
-    
-    price_id = price_id_map.get(plan)
+
+    price_id = STRIPE_PLAN_MAPPING.get(plan)
     if not price_id:
         raise HTTPException(status_code=400, detail="Invalid plan")
     
