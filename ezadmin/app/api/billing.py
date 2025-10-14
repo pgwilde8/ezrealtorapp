@@ -18,6 +18,7 @@ from app.models.agent import Agent, PlanTier
 from app.middleware.tenant_resolver import get_current_agent_id
 from app.services.billing import billing_service
 from app.utils.slug_generator import generate_unique_slug
+from fastapi import BackgroundTasks
 
 logger = logging.getLogger(__name__)
 

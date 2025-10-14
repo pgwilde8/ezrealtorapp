@@ -52,15 +52,16 @@ async def checkout_success(
         subscription = stripe.Subscription.retrieve(subscription_id)
         
         # Determine plan tier from Stripe price ID
+        # Determine plan tier from Stripe price ID
         actual_plan_tier = PlanTier.TRIAL  # default
         for item in subscription['items']['data']:
             price_id = item['price']['id']
-            if price_id == os.getenv('STRIPE_FREE_PRICE_ID'):
+            if price_id == os.getenv('STRIPE_CONCIERGE_PRICE_ID'):
+                actual_plan_tier = PlanTier.PRO  # Map Concierge to PRO
+            elif price_id == os.getenv('STRIPE_CONCIERGE_PLUS_PRICE_ID'):
+                actual_plan_tier = PlanTier.ENTERPRISE  # Map Concierge Plus to ENTERPRISE
+            elif price_id == os.getenv('STRIPE_FREE_PRICE_ID'):
                 actual_plan_tier = PlanTier.TRIAL
-            elif price_id == os.getenv('STRIPE_BASIC_PRICE_ID'):
-                actual_plan_tier = PlanTier.PRO
-            elif price_id == os.getenv('STRIPE_PRO_PRICE_ID'):
-                actual_plan_tier = PlanTier.ENTERPRISE
         
         result = await db.execute(
             select(Agent).where(Agent.stripe_customer_id == customer_id)
@@ -107,7 +108,7 @@ async def checkout_success(
         # Send welcome email with login instructions
         try:
             from app.utils.email_brevo import email_service
-            email_sent = email_service.send_welcome_email(
+            email_sent = await email_service.send_welcome_email(
                 to_email=customer.email,
                 to_name=customer.name or agent.name,
                 plan_tier=agent.plan_tier
@@ -179,7 +180,49 @@ async def agent_dashboard(
                 "agent": agent,
                 "is_new_customer": True
             })
+@router.post("/checkout/create-session")
+async def create_checkout_session(
+    request: Request,
+    plan_data: dict,
+    db: AsyncSession = Depends(get_db)
+):
+    """Create Stripe checkout session for Concierge plans"""
+    from app.middleware.auth import get_current_agent
     
+    current_agent = await get_current_agent(request, db)
+    if not current_agent:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    plan = plan_data.get("plan", "concierge")
+    
+    # Map plan to Stripe price ID
+    price_id_map = {
+        "concierge": os.getenv('STRIPE_CONCIERGE_PRICE_ID'),
+        "concierge_plus": os.getenv('STRIPE_CONCIERGE_PLUS_PRICE_ID')
+    }
+    
+    price_id = price_id_map.get(plan)
+    if not price_id:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+    
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=current_agent.email,
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=f"https://ezrealtor.app/checkout/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url="https://ezrealtor.app/onboarding",
+        )
+        
+        return {"checkout_url": checkout_session.url}
+        
+    except Exception as e:
+        logger.error(f"Error creating checkout session: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create checkout session")
     # No authentication and no valid token - redirect to login
     if expected_slug:
         return RedirectResponse(url=f"https://login.ezrealtor.app?redirect_to={expected_slug}")
