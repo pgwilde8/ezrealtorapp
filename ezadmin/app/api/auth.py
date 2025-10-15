@@ -289,7 +289,7 @@ async def send_password_reset(
     reset_link = f"https://login.ezrealtor.app/auth/reset/{reset_token}"
     
     # Send email
-    email_service = EmailService()
+    from app.utils.email_brevo import email_service
     await email_service.send_password_reset_email(
         to_email=agent.email,
         agent_name=f"{agent.first_name} {agent.last_name}",

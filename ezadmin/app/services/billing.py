@@ -23,11 +23,11 @@ class BillingService:
     
     def __init__(self):
         self.price_ids = {
-            PlanTier.TRIAL: os.getenv("STRIPE_TRIAL_PRICE_ID"),
-            PlanTier.STARTER: os.getenv("STRIPE_STARTER_PRICE_ID"), 
-            PlanTier.GROWTH: os.getenv("STRIPE_GROWTH_PRICE_ID"),
-            PlanTier.SCALE: os.getenv("STRIPE_SCALE_PRICE_ID"),
-            PlanTier.PRO: os.getenv("STRIPE_PRO_PRICE_ID"),
+            PlanTier.TRIAL: os.getenv("STRIPE_FreeTrial_PRICE_ID"),
+            PlanTier.STARTER: os.getenv("STRIPE_Starter_PRICE_ID"), 
+            PlanTier.GROWTH: os.getenv("STRIPE_Growth_PRICE_ID"),
+            PlanTier.SCALE: os.getenv("STRIPE_Scale_PRICE_ID"),
+            PlanTier.PRO: os.getenv("STRIPE_Pro_PRICE_ID"),
         }
     
     async def create_customer(self, agent: Agent) -> str:

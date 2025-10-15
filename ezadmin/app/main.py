@@ -138,6 +138,55 @@ async def pricing_page(request: Request):
     """Pricing plans page"""
     return templates.TemplateResponse("pricing.html", {"request": request})
 
+@app.get("/checkout")
+async def checkout_redirect(request: Request, plan: str = "starter"):
+    """Handle checkout requests and redirect to Stripe"""
+    # Import here to avoid circular imports
+    import stripe
+    import os
+    
+    # Configure Stripe
+    stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+    
+    # Map plan to Stripe price ID using the same mapping as billing.py
+    price_mapping = {
+        "trial": os.getenv("STRIPE_FreeTrial_PRICE_ID"),
+        "starter": os.getenv("STRIPE_Starter_PRICE_ID"),
+        "growth": os.getenv("STRIPE_Growth_PRICE_ID"),
+        "scale": os.getenv("STRIPE_Scale_PRICE_ID"),
+        "pro": os.getenv("STRIPE_Pro_PRICE_ID"),
+    }
+    
+    price_id = price_mapping.get(plan.lower())
+    if not price_id:
+        raise HTTPException(status_code=400, detail=f"Invalid plan: {plan}")
+    
+    try:
+        # Create checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=f"https://ezrealtor.app/checkout/thank-you?plan={plan}&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url="https://ezrealtor.app/pricing?cancelled=true",
+            allow_promotion_codes=True,
+            billing_address_collection='required',
+            metadata={
+                "plan": plan,
+                "source": "direct_checkout"
+            }
+        )
+        
+        # Redirect to Stripe checkout
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=session.url, status_code=303)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Checkout error: {str(e)}")
+
 @app.get("/checkout/thank-you")
 async def checkout_thank_you(request: Request, email: str = None, plan: str = None):
     """Thank you page after successful checkout"""

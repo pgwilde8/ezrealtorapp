@@ -1,710 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pricing - EZRealtor.app</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://js.stripe.com/v3/"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EZRealtor Pricing</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Stripe.js (optional if your backend returns a hosted checkout_url) -->
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="/" class="text-2xl font-bold text-blue-600">
-                        <i class="fas fa-home mr-2"></i>EZRealtor.app
-                    </a>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="https://login.ezrealtor.app" class="text-blue-600 hover:text-blue-800 px-3 py-2 rounded-md text-sm font-medium">Login</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="gradient-bg py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-            <h1 class="text-5xl font-bold mb-6">Simple, Lead-Based Pricing</h1>
-            <p class="text-xl mb-8 max-w-3xl mx-auto">
-                Choose by leads per month. Get bigger bundles as you grow. 
-                <strong>Auto-bump protection</strong> ensures you never miss a lead.
-            </p>
-            <div class="bg-white/20 rounded-lg p-4 inline-block">
-                <p class="text-lg">
-                    <i class="fas fa-shield-alt mr-2"></i>
-                    <strong>Guarantee:</strong> 1 tier max/month • Pro-rated billing • One forgiveness per quarter
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Pricing Cards -->
-    <section class="py-20 -mt-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
-                
-                <!-- Starter Plan -->
-                <div class="bg-white border-2 border-blue-200 rounded-2xl p-8 shadow-xl relative">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span class="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                            <i class="fas fa-rocket mr-1"></i>Most Popular
-                        </span>
-                    </div>
-                    
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-                        <div class="text-5xl font-bold text-blue-600 mb-2">$97</div>
-                        <p class="text-gray-600">per month</p>
-                    </div>
-                    
-                    <div class="text-center mb-6">
-                        <div class="text-3xl font-bold text-gray-900 mb-1">150</div>
-                        <p class="text-gray-600">leads per month</p>
-                    </div>
-                    
-                    <div class="space-y-4 mb-8">
-                        <h4 class="font-semibold text-gray-900">Pooled Bundle Includes:</h4>
-                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                            <div><i class="fas fa-envelope text-blue-500 mr-2"></i>600 emails</div>
-                            <div><i class="fas fa-sms text-green-500 mr-2"></i>180 SMS</div>
-                            <div><i class="fas fa-phone text-purple-500 mr-2"></i>40 call minutes</div>
-                            <div><i class="fas fa-brain text-orange-500 mr-2"></i>0.8M AI tokens</div>
-                        </div>
-                    </div>
-                    
-                    <button onclick="startCheckout('starter')" 
-                            class="w-full bg-blue-600 text-white hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition duration-300 mb-4">
-                        Start with Starter
-                    </button>
-                    
-                    <p class="text-xs text-gray-500 text-center">
-                        Hit the limit? Auto-bump to Growth and pro-rate the difference.
-                    </p>
-                </div>
-
-                <!-- Growth Plan -->
-                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Growth</h3>
-                        <div class="text-5xl font-bold text-green-600 mb-2">$147</div>
-                        <p class="text-gray-600">per month</p>
-                    </div>
-                    
-                    <div class="text-center mb-6">
-                        <div class="text-3xl font-bold text-gray-900 mb-1">500</div>
-                        <p class="text-gray-600">leads per month</p>
-                    </div>
-                    
-                    <div class="space-y-4 mb-8">
-                        <h4 class="font-semibold text-gray-900">Pooled Bundle Includes:</h4>
-                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                            <div><i class="fas fa-envelope text-blue-500 mr-2"></i>2,500 emails</div>
-                            <div><i class="fas fa-sms text-green-500 mr-2"></i>700 SMS</div>
-                            <div><i class="fas fa-phone text-purple-500 mr-2"></i>120 call minutes</div>
-                            <div><i class="fas fa-brain text-orange-500 mr-2"></i>3M AI tokens</div>
-                        </div>
-                    </div>
-                    
-                    <button onclick="startCheckout('growth')" 
-                            class="w-full bg-green-600 text-white hover:bg-green-700 px-6 py-3 rounded-lg font-semibold transition duration-300 mb-4">
-                        Choose Growth
-                    </button>
-                    
-                    <p class="text-xs text-gray-500 text-center">
-                        Same auto-bump protection with one forgiveness per quarter.
-                    </p>
-                </div>
-
-                <!-- Scale Plan -->
-                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Scale</h3>
-                        <div class="text-5xl font-bold text-purple-600 mb-2">$237</div>
-                        <p class="text-gray-600">per month</p>
-                    </div>
-                    
-                    <div class="text-center mb-6">
-                        <div class="text-3xl font-bold text-gray-900 mb-1">1,500</div>
-                        <p class="text-gray-600">leads per month</p>
-                    </div>
-                    
-                    <div class="space-y-4 mb-8">
-                        <h4 class="font-semibold text-gray-900">Pooled Bundle Includes:</h4>
-                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                            <div><i class="fas fa-envelope text-blue-500 mr-2"></i>6,000 emails</div>
-                            <div><i class="fas fa-sms text-green-500 mr-2"></i>2,000 SMS</div>
-                            <div><i class="fas fa-phone text-purple-500 mr-2"></i>400 call minutes</div>
-                            <div><i class="fas fa-brain text-orange-500 mr-2"></i>9M AI tokens</div>
-                        </div>
-                    </div>
-                    
-                    <button onclick="startCheckout('scale')" 
-                            class="w-full bg-purple-600 text-white hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold transition duration-300 mb-4">
-                        Choose Scale
-                    </button>
-                    
-                    <p class="text-xs text-gray-500 text-center">
-                        Perfect for growing teams and high-volume agents.
-                    </p>
-                </div>
-
-                <!-- Pro Plan -->
-                <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
-                    <div class="text-center mb-8">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
-                        <div class="text-5xl font-bold text-indigo-600 mb-2">$437</div>
-                        <p class="text-gray-600">per month</p>
-                        <span class="text-xs text-gray-500">(optional)</span>
-                    </div>
-                    
-                    <div class="text-center mb-6">
-                        <div class="text-3xl font-bold text-gray-900 mb-1">4,000</div>
-                        <p class="text-gray-600">leads per month</p>
-                    </div>
-                    
-                    <div class="space-y-4 mb-8">
-                        <h4 class="font-semibold text-gray-900">Pooled Bundle Includes:</h4>
-                        <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                            <div><i class="fas fa-envelope text-blue-500 mr-2"></i>15,000 emails</div>
-                            <div><i class="fas fa-sms text-green-500 mr-2"></i>5,000 SMS</div>
-                            <div><i class="fas fa-phone text-purple-500 mr-2"></i>1,000 call minutes</div>
-                            <div><i class="fas fa-brain text-orange-500 mr-2"></i>25M AI tokens</div>
-                        </div>
-                    </div>
-                    
-                    <button onclick="startCheckout('pro')" 
-                            class="w-full bg-indigo-600 text-white hover:bg-indigo-700 px-6 py-3 rounded-lg font-semibold transition duration-300 mb-4">
-                        Choose Pro
-                    </button>
-                    
-                    <p class="text-xs text-gray-500 text-center">
-                        For enterprise teams and brokerages.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Auto-Bump Protection Features -->
-    <section class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">Auto-Bump Protection System</h2>
-                <p class="text-xl text-gray-600">Never miss a lead. Never get surprised by bills.</p>
-            </div>
-            
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-bell text-yellow-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2">Smart Alerts</h3>
-                    <p class="text-gray-600">Get notified at 80% and 95% of your lead cap with upgrade options.</p>
-                </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-arrow-up text-green-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2">Auto-Bump Protection</h3>
-                    <p class="text-gray-600">Hit your limit? We'll finish the month in the next tier (max 1 tier/month, pro-rated).</p>
-                </div>
-                
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-undo text-blue-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold mb-2">Forgiveness System</h3>
-                    <p class="text-gray-600">One forgiveness per quarter - drop back if the spike was temporary.</p>
-                </div>
-            </div>
-            
-            <div class="mt-12 bg-gray-50 rounded-xl p-8">
-                <div class="max-w-3xl mx-auto text-center">
-                    <h3 class="text-xl font-semibold mb-4">Want Control? Enable "Pause at Cap"</h3>
-                    <p class="text-gray-600 mb-4">
-                        Prefer to manually upgrade? Toggle "Pause at cap" in settings. 
-                        We'll pause lead processing instead of auto-bumping.
-                    </p>
-                    <div class="inline-flex items-center bg-white px-4 py-2 rounded-lg shadow">
-                        <i class="fas fa-cog text-gray-400 mr-2"></i>
-                        <span class="text-sm text-gray-700">Available in dashboard settings</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Add-ons Section -->
-    <section class="py-16 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">Power-ups & Add-ons</h2>
-                <p class="text-xl text-gray-600">Extend your plan with targeted boosters</p>
-            </div>
-            
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white rounded-lg p-6 shadow-md">
-                    <div class="text-center">
-                        <i class="fas fa-calendar-weekend text-orange-500 text-3xl mb-3"></i>
-                        <h3 class="font-semibold mb-2">Weekend Boost</h3>
-                        <div class="text-2xl font-bold text-orange-600 mb-2">$49</div>
-                        <p class="text-sm text-gray-600">+300 SMS + 60 call minutes (Fri-Sun only). Perfect for open houses!</p>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-lg p-6 shadow-md">
-                    <div class="text-center">
-                        <i class="fas fa-plus-circle text-blue-500 text-3xl mb-3"></i>
-                        <h3 class="font-semibold mb-2">Extra Page</h3>
-                        <div class="text-2xl font-bold text-blue-600 mb-2">$29<span class="text-sm">/mo</span></div>
-                        <p class="text-sm text-gray-600">Add another lead capture page. Shares your pooled quotas.</p>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-lg p-6 shadow-md">
-                    <div class="text-center">
-                        <i class="fas fa-server text-purple-500 text-3xl mb-3"></i>
-                        <h3 class="font-semibold mb-2">Dedicated Email IP</h3>
-                        <div class="text-2xl font-bold text-purple-600 mb-2">$39<span class="text-sm">/mo</span></div>
-                        <p class="text-sm text-gray-600">Improve deliverability with your own email sending IP.</p>
-                    </div>
-                </div>
-                
-                <div class="bg-white rounded-lg p-6 shadow-md">
-                    <div class="text-center">
-                        <i class="fas fa-paint-brush text-green-500 text-3xl mb-3"></i>
-                        <h3 class="font-semibold mb-2">White-label</h3>
-                        <div class="text-2xl font-bold text-green-600 mb-2">$49<span class="text-sm">/mo</span></div>
-                        <p class="text-sm text-gray-600">Custom domain and branding. Remove EZRealtor references.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ Section -->
-    <section class="py-16 bg-white">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900">Frequently Asked Questions</h2>
-            </div>
-            
-            <div class="space-y-8">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">What happens if I hit my lead limit?</h3>
-                    <p class="text-gray-600">You'll get alerts at 80% and 95%. If you hit the limit, we'll automatically bump you to the next tier for the remainder of the month and pro-rate the difference. Maximum 1 tier increase per month.</p>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I prevent auto-bumping?</h3>
-                    <p class="text-gray-600">Yes! Toggle "Pause at cap" in your dashboard settings. We'll pause lead processing instead of upgrading automatically. You can then manually upgrade or wait until next month.</p>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">What's the forgiveness system?</h3>
-                    <p class="text-gray-600">Once per quarter, you can drop back to your previous tier if an auto-bump was due to a temporary spike. Perfect for seasonal fluctuations.</p>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Are the bundles guaranteed?</h3>
-                    <p class="text-gray-600">Bundles are processing limits, not guarantees of visitors or leads. All resources (emails, SMS, voice, AI tokens) are pooled across your pages and reset monthly.</p>
-                </div>
-                
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Can I downgrade my plan?</h3>
-                    <p class="text-gray-600">Yes! If your usage stays below 60% of your current tier for 2 consecutive months, we'll suggest a downgrade option for your next billing cycle.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="py-16 gradient-bg">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-            <h2 class="text-3xl font-bold mb-6">Ready to Start Capturing Leads?</h2>
-            <p class="text-xl mb-8">
-                Join thousands of realtors using AI-powered lead generation. 
-                Start with our 14-day free trial.
-            </p>
-            <button onclick="startCheckout('trial')" 
-                    class="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 rounded-lg font-semibold text-lg transition duration-300">
-                <i class="fas fa-rocket mr-2"></i>Start Free Trial
-            </button>
-            <p class="text-sm mt-4 opacity-90">No credit card required • Full access • 50 trial leads included</p>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid md:grid-cols-4 gap-8">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4">EZRealtor.app</h3>
-                    <p class="text-gray-400">AI-powered lead generation for modern realtors.</p>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Product</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#" class="hover:text-white">Features</a></li>
-                        <li><a href="#" class="hover:text-white">Pricing</a></li>
-                        <li><a href="#" class="hover:text-white">Integrations</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Support</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#" class="hover:text-white">Help Center</a></li>
-                        <li><a href="#" class="hover:text-white">Contact Us</a></li>
-                        <li><a href="#" class="hover:text-white">Status</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-semibold mb-4">Legal</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#" class="hover:text-white">Privacy Policy</a></li>
-                        <li><a href="#" class="hover:text-white">Terms of Service</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-                <p>&copy; 2025 EZRealtor.app. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        const stripe = Stripe('pk_test_51SDNxERzRv6CTjxRe2DHaPPldl7Ra7CppcLcGSDcAEVGuy25h3klPY2a6vA6XChhLTZVYTaHHZtINNL2l4sKuBOl00p0YjvxpW');
-
-        async function startCheckout(plan) {
-            try {
-                const response = await fetch('/api/v1/checkout/create-session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ plan: plan })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    window.location.href = data.checkout_url;
-                } else {
-                    // Redirect to login if not authenticated
-                    window.location.href = 'https://login.ezrealtor.app?redirect_to=pricing';
-                }
-            } catch (error) {
-                console.error('Checkout error:', error);
-                alert('Something went wrong. Please try again.');
-            }
-        }
-    </script>
-</body>
-</html>
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Both lead funnels
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            AI lead scoring
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Email notifications
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Subdomain (you.ezrealtor.app)
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Pro Plan - Most Popular -->
-                <div class="bg-white border-2 border-indigo-500 rounded-xl p-8 shadow-xl relative">
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                        <span class="bg-indigo-500 text-white px-4 py-2 rounded-full text-sm font-semibold">Most Popular</span>
-                    </div>
-                    <div class="text-center">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
-                        <div class="text-4xl font-bold text-indigo-600 mb-4">$97<span class="text-lg text-gray-600">/month</span></div>
-                        <p class="text-gray-600 mb-6">Everything you need to scale</p>
-                        <button onclick="startCheckout('pro')" class="w-full bg-indigo-600 text-white hover:bg-indigo-700 px-6 py-3 rounded-lg font-semibold transition duration-300">
-                            Start Pro Plan
-                        </button>
-                    </div>
-                    <ul class="mt-8 space-y-4">
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <strong>Unlimited leads</strong>
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            SMS & voice follow-up
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Custom domain support
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Advanced AI analytics
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            CRM integrations
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Priority support
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Enterprise Plan -->
-                <div class="bg-white border border-gray-200 rounded-xl p-8 shadow-lg">
-                    <div class="text-center">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
-                        <div class="text-4xl font-bold text-gray-900 mb-4">$297<span class="text-lg text-gray-600">/month</span></div>
-                        <p class="text-gray-600 mb-6">For teams and brokerages</p>
-                        <button onclick="startCheckout('enterprise')" class="w-full bg-gray-600 text-white hover:bg-gray-700 px-6 py-3 rounded-lg font-semibold transition duration-300">
-                            Contact Sales
-                        </button>
-                    </div>
-                    <ul class="mt-8 space-y-4">
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Everything in Pro
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Team management
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Multi-agent dashboard
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            White-label options
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Dedicated support
-                        </li>
-                        <li class="flex items-center text-gray-600">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            Custom integrations
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Money-back guarantee -->
-            <div class="text-center mt-16">
-                <div class="inline-flex items-center bg-green-50 border border-green-200 rounded-lg p-4">
-                    <svg class="w-6 h-6 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="text-green-800 font-semibold">30-day money-back guarantee on all paid plans</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- User info modal -->
-    <div id="userInfoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-8 rounded-lg max-w-md w-full mx-4">
-            <h3 class="text-2xl font-bold text-gray-900 mb-4">Complete Your Information</h3>
-            <form id="userInfoForm">
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="userName">
-                        Full Name
-                    </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                           id="userName" 
-                           type="text" 
-                           placeholder="John Doe"
-                           required>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="userEmail">
-                        Email Address
-                    </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                           id="userEmail" 
-                           type="email" 
-                           placeholder="john@example.com"
-                           required>
-                </div>
-                <div class="flex items-center justify-between">
-                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" 
-                            type="submit">
-                        Continue to Payment
-                    </button>
-                </div>
-                <button type="button" onclick="closeUserInfoModal()" class="mt-3 w-full text-gray-500 hover:text-gray-700">
-                    Cancel
-                </button>
-            </form>
-        </div>
+<body class="bg-gray-50 text-gray-900">
+  <!-- HEADER -->
+  <header class="bg-white border-b">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="/" class="font-bold">EZRealtor.app</a>
+      <a href="#addons" class="text-sm underline">Add-ons</a>
     </div>
+  </header>
 
-    <!-- Loading overlay -->
-    <div id="loading" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-8 rounded-lg text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p class="text-gray-600">Setting up your account...</p>
-        </div>
+  <!-- HERO -->
+  <section class="py-12 bg-gradient-to-b from-white to-gray-50">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+      <h1 class="text-3xl sm:text-4xl font-bold">Simple, predictable pricing</h1>
+      <p class="mt-3 text-gray-600">Tiered by <strong>leads/month</strong>. Pooled email, SMS, calls, and AI. <em>Caps are processing limits—no traffic/lead guarantees.</em></p>
     </div>
+  </section>
 
-    <script>
-        // Store the selected plan globally
-        let selectedPlan = null;
+  <!-- PRICING GRID -->
+  <section class="py-8">
+    <!-- Top Row: 3 columns -->
+<div class="max-w-5xl mx-auto py-12 px-4">
+  <h2 class="text-3xl font-bold text-center mb-8">EZRealtor Pricing</h2>
+  <p class="text-center text-gray-600 mb-10">
+    Lead amounts shown are the maximum your plan can process per month. Actual leads depend on your site traffic and marketing. No lead quantity is guaranteed.
+  </p>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Trial -->
+    <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+      <h3 class="text-xl font-semibold mb-2">Free Trial</h3>
+      <div class="text-4xl font-bold mb-2">$0</div>
+      <div class="text-gray-500 mb-4">Up to 50 leads/month</div>
+      <ul class="text-sm text-gray-600 mb-6">
+        <li>Full platform access</li>
+        <li>No credit card required</li>
+      </ul>
+      <button data-plan="trial" class="plan-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Start Free Trial</button>
+    </div>
+    <!-- Starter -->
+    <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+      <h3 class="text-xl font-semibold mb-2">Starter</h3>
+      <div class="text-4xl font-bold mb-2">$97</div>
+      <div class="text-gray-500 mb-4">Up to 150 leads/month</div>
+      <ul class="text-sm text-gray-600 mb-6">
+        <li>Auto-bump protection</li>
+        <li>Basic AI messaging</li>
+      </ul>
+      <button data-plan="starter" class="plan-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-center">Choose Starter</button>
+    </div>
+    <!-- Growth -->
+    <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+      <h3 class="text-xl font-semibold mb-2">Growth</h3>
+      <div class="text-4xl font-bold mb-2">$147</div>
+      <div class="text-gray-500 mb-4">Up to 500 leads/month</div>
+      <ul class="text-sm text-gray-600 mb-6">
+        <li>Advanced AI messaging</li>
+        <li>Weekend boost add-on available</li>
+      </ul>
+      <button data-plan="growth" class="plan-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-center">Choose Growth</button>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Scale -->
+    <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+      <h3 class="text-xl font-semibold mb-2">Scale</h3>
+      <div class="text-4xl font-bold mb-2">$237</div>
+      <div class="text-gray-500 mb-4">Up to 1500 leads/month</div>
+      <ul class="text-sm text-gray-600 mb-6">
+        <li>Priority support</li>
+        <li>All Growth features</li>
+      </ul>
+      <button data-plan="scale" class="plan-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Choose Scale</button>
+    </div>
+    <!-- Pro -->
+    <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+      <h3 class="text-xl font-semibold mb-2">Pro</h3>
+      <div class="text-4xl font-bold mb-2">$437</div>
+      <div class="text-gray-500 mb-4">Up to 4000 leads/month</div>
+      <ul class="text-sm text-gray-600 mb-6">
+        <li>Custom integrations</li>
+        <li>All Scale features</li>
+      </ul>
+      <button data-plan="pro" class="plan-btn bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Choose Pro</button>
+    </div>
+  </div>
+</div>
+        
 
-        function startCheckout(plan) {
-            selectedPlan = plan;
-            // Show user info modal
-            document.getElementById('userInfoModal').classList.remove('hidden');
-        }
+    <div class="max-w-5xl mx-auto px-4 mt-6 text-xs text-gray-500">
+      *Caps are processing limits, not guarantees of visitors or leads. Bundles reset monthly. International messaging may be priced separately. Auto-bump: 1 tier max/month, pro-rated; one forgiveness per quarter. Toggle “Pause at cap” in settings to prevent auto-bump.
+    </div>
+  </section>
 
-        function closeUserInfoModal() {
-            document.getElementById('userInfoModal').classList.add('hidden');
-            selectedPlan = null;
-        }
+  <!-- AUTO-BUMP EXPLAINER -->
+  <section class="py-12 bg-white">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="grid md:grid-cols-3 gap-8 text-center">
+        <div>
+          <div class="w-14 h-14 rounded-full bg-yellow-100 mx-auto grid place-items-center mb-3">🔔</div>
+          <h3 class="font-semibold">Smart Alerts</h3>
+          <p class="text-sm text-gray-600 mt-1">Heads-up at 80% and 95% of your lead cap.</p>
+        </div>
+        <div>
+          <div class="w-14 h-14 rounded-full bg-green-100 mx-auto grid place-items-center mb-3">⬆️</div>
+          <h3 class="font-semibold">Auto-bump Protection</h3>
+          <p class="text-sm text-gray-600 mt-1">Hit the cap? We finish the month in the next tier (1 tier max, pro-rated).</p>
+        </div>
+        <div>
+          <div class="w-14 h-14 rounded-full bg-blue-100 mx-auto grid place-items-center mb-3">↩️</div>
+          <h3 class="font-semibold">Forgiveness</h3>
+          <p class="text-sm text-gray-600 mt-1">One forgiveness per quarter if a spike was a blip.</p>
+        </div>
+      </div>
+      <div class="mt-8 bg-gray-50 rounded-xl p-6 text-center">
+        <h4 class="font-semibold mb-1">Want control?</h4>
+        <p class="text-sm text-gray-600">Enable <strong>“Pause at cap”</strong> in settings to pause instead of auto-bump.</p>
+      </div>
+    </div>
+  </section>
 
-        document.getElementById('userInfoForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('userName').value;
-            const email = document.getElementById('userEmail').value;
-            
-            if (!name || !email) {
-                alert('Please fill in all required fields.');
-                return;
-            }
+  <!-- ADD-ONS -->
+  <section id="addons" class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl font-bold">Power-ups & Add-ons</h2>
+        <p class="text-gray-600">Extend your plan with targeted boosters</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white rounded-xl p-6 shadow-sm text-center">
+          <h3 class="font-semibold">Weekend Boost</h3>
+          <div class="text-2xl font-bold text-orange-600 mt-1">$39</div>
+          <p class="text-sm text-gray-600 mt-2">+300 SMS + 60 call minutes (Fri–Sun). Great for open houses.</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm text-center">
+          <h3 class="font-semibold">Extra Page</h3>
+          <div class="text-2xl font-bold text-blue-600 mt-1">$29<span class="text-sm text-gray-500">/mo</span></div>
+          <p class="text-sm text-gray-600 mt-2">Add another lead page. Shares your pooled quotas.</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm text-center">
+          <h3 class="font-semibold">Dedicated Email IP</h3>
+          <div class="text-2xl font-bold text-purple-600 mt-1">$39<span class="text-sm text-gray-500">/mo</span></div>
+          <p class="text-sm text-gray-600 mt-2">Improve deliverability with your own IP.</p>
+        </div>
+        <div class="bg-white rounded-xl p-6 shadow-sm text-center">
+          <h3 class="font-semibold">White-label</h3>
+          <div class="text-2xl font-bold text-emerald-600 mt-1">$49<span class="text-sm text-gray-500">/mo</span></div>
+          <p class="text-sm text-gray-600 mt-2">Custom domain & branding; remove EZRealtor references.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            // Store selectedPlan before closing modal
-            const currentPlan = selectedPlan;
-            
-            // Close modal and show loading
-            document.getElementById('userInfoModal').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
+  <!-- CTA -->
+  <section class="py-16 bg-gradient-to-r from-indigo-600 to-blue-600 text-white text-center">
+    <div class="max-w-3xl mx-auto px-4">
+      <h2 class="text-3xl font-bold">Ready to start capturing leads?</h2>
+      <p class="mt-2 text-lg text-indigo-100">Start with a 14-day free trial. Full access. Caps apply.</p>
+      <button data-plan="trial" class="plan-btn mt-6 bg-white text-indigo-700 hover:bg-indigo-50 px-8 py-3 rounded-lg font-semibold">
+        Start Free Trial
+      </button>
+    </div>
+  </section>
 
-            try {
-                // Map plan names to PlanTier values
-                const planMapping = {
-                    'trial': 'trial',
-                    'pro': 'pro',        // Pro plan maps to pro
-                    'enterprise': 'enterprise'  // Enterprise maps to enterprise
-                };
+  <!-- FOOTER -->
+  <footer class="bg-gray-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid md:grid-cols-4 gap-8 text-sm">
+      <div><div class="font-semibold mb-2">EZRealtor.app</div><p class="text-gray-400">AI-powered lead handling for modern realtors.</p></div>
+      <div><div class="font-semibold mb-2">Product</div><ul class="space-y-1 text-gray-400"><li><a href="#" class="hover:text-white">Features</a></li><li><a href="#" class="hover:text-white">Pricing</a></li><li><a href="#" class="hover:text-white">Integrations</a></li></ul></div>
+      <div><div class="font-semibold mb-2">Support</div><ul class="space-y-1 text-gray-400"><li><a href="#" class="hover:text-white">Help Center</a></li><li><a href="#" class="hover:text-white">Contact</a></li><li><a href="#" class="hover:text-white">Status</a></li></ul></div>
+      <div><div class="font-semibold mb-2">Legal</div><ul class="space-y-1 text-gray-400"><li><a href="#" class="hover:text-white">Privacy</a></li><li><a href="#" class="hover:text-white">Terms</a></li></ul></div>
+    </div>
+    <div class="border-t border-gray-800 text-center py-6 text-gray-400 text-xs">&copy; 2025 EZRealtor.app. All rights reserved.</div>
+  </footer>
 
-                const planTier = planMapping[currentPlan];
-                if (!planTier) {
-                    throw new Error(`Invalid plan: ${currentPlan}`);
-                }
+  <!-- USER INFO MODAL -->
+  <div id="userInfoModal" class="hidden fixed inset-0 bg-black/50 z-[100]">
+    <div class="min-h-full w-full grid place-items-center p-4">
+      <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+        <h3 class="text-xl font-bold mb-2">Complete your info</h3>
+        <p class="text-sm text-gray-600 mb-4">We’ll create your workspace and send the receipt.</p>
+        <form id="userInfoForm" class="space-y-3">
+          <input id="userName" required placeholder="Full name" class="w-full border rounded-lg px-3 py-2"/>
+          <input id="userEmail" required type="email" placeholder="Email address" class="w-full border rounded-lg px-3 py-2"/>
+          <div class="flex gap-2 pt-2">
+            <button type="button" id="cancelModal" class="w-1/3 border rounded-lg px-3 py-2">Cancel</button>
+            <button type="submit" class="w-2/3 bg-indigo-600 text-white rounded-lg px-3 py-2">Continue to payment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-                // Create anonymous checkout session
-                const response = await fetch('/api/v1/billing/checkout-anonymous', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        plan_tier: planTier,
-                        email: email,
-                        name: name,
-                        billing_cycle: 'monthly'
-                    })
-                });
+  <!-- LOADING OVERLAY -->
+  <div id="loading" class="hidden fixed inset-0 bg-black/50 z-[110]">
+    <div class="min-h-full w-full grid place-items-center p-4">
+      <div class="bg-white rounded-xl p-6 text-center shadow-xl">
+        <div class="animate-spin rounded-full h-10 w-10 border-2 border-indigo-200 border-t-indigo-600 mx-auto mb-3"></div>
+        <p class="text-sm text-gray-700">Setting up your account…</p>
+      </div>
+    </div>
+  </div>
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail || 'Checkout failed');
-                }
+  <script>
+    // Selected plan, shared across buttons → modal → checkout
+    let selectedPlan = null;
 
-                const session = await response.json();
+    // Open modal on any ".plan-btn"
+    document.querySelectorAll('.plan-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        selectedPlan = e.currentTarget.getAttribute('data-plan'); // starter|growth|scale|pro|trial
+        document.getElementById('userInfoModal').classList.remove('hidden');
+      });
+    });
 
-                if (session.error) {
-                    throw new Error(session.error);
-                }
+    document.getElementById('cancelModal').addEventListener('click', () => {
+      document.getElementById('userInfoModal').classList.add('hidden');
+      selectedPlan = null;
+    });
 
-                // Redirect to Stripe Checkout using the URL
-                if (session.checkout_url) {
-                    window.location.href = session.checkout_url;
-                } else {
-                    throw new Error('No checkout URL received');
-                }
+    // Submit user info → call backend → redirect
+    document.getElementById('userInfoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('userName').value.trim();
+      const email = document.getElementById('userEmail').value.trim();
+      if (!name || !email || !selectedPlan) return;
 
-            } catch (error) {
-                // Hide loading
-                document.getElementById('loading').classList.add('hidden');
-                
-                // Show error
-                if (error.message.includes('Email already registered')) {
-                    alert('This email is already registered. Please login to manage your subscription.');
-                } else {
-                    alert('Sorry, there was an error starting your checkout. Please try again or contact support.');
-                }
-                console.error('Checkout error:', error);
-                
-                // Reset the selectedPlan
-                selectedPlan = null;
-            }
+      // Close modal + show loading
+      document.getElementById('userInfoModal').classList.add('hidden');
+      document.getElementById('loading').classList.remove('hidden');
+
+      try {
+        // Map front-end plan codes to your backend enums
+        const planMapping = {
+          trial: 'trial',
+          starter: 'starter',
+          growth: 'growth',
+          scale: 'scale',
+          pro: 'pro'
+        };
+        const plan_tier = planMapping[selectedPlan];
+        if (!plan_tier) throw new Error('Invalid plan selected');
+
+        const res = await fetch('/api/v1/billing/checkout-anonymous', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plan_tier,
+            billing_cycle: 'monthly',
+            email,
+            name
+          })
         });
 
-        // Handle URL parameters for success/cancel
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success');
-        const canceled = urlParams.get('canceled');
-
-        if (success) {
-            // Redirect to login after successful payment
-            window.location.href = 'https://login.ezrealtor.app?welcome=true';
-        } else if (canceled) {
-            // Show a message about canceled checkout
-            alert('Checkout was canceled. Feel free to try again when you\'re ready!');
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || 'Checkout failed');
         }
-    </script>
+        const data = await res.json();
+
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url; // Hosted Checkout URL from backend
+        } else {
+          throw new Error('No checkout URL received');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Sorry, we couldn’t start checkout. Please try again or contact support.');
+        document.getElementById('loading').classList.add('hidden');
+        selectedPlan = null;
+      }
+    });
+
+    // Handle success/cancel query params if your backend redirects back
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success')) {
+      window.location.replace('https://login.ezrealtor.app?welcome=true');
+    } else if (params.get('canceled')) {
+      // Optional: show a soft toast
+      console.log('Checkout canceled');
+    }
+  </script>
 </body>
 </html>

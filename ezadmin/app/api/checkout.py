@@ -52,20 +52,28 @@ async def checkout_success(
         subscription = stripe.Subscription.retrieve(subscription_id)
         
         # Determine plan tier from Stripe price ID
-        # Determine plan tier from Stripe price ID
         actual_plan_tier = PlanTier.TRIAL  # default
         for item in subscription['items']['data']:
             price_id = item['price']['id']
-            if price_id == os.getenv('STRIPE_STARTER_PRICE_ID'):
+            logger.info(f"Checking price_id from Stripe: {price_id}")
+            
+            if price_id == os.getenv('STRIPE_Starter_PRICE_ID'):
                 actual_plan_tier = PlanTier.STARTER
-            elif price_id == os.getenv('STRIPE_GROWTH_PRICE_ID'):
+                logger.info(f"Matched STARTER plan")
+            elif price_id == os.getenv('STRIPE_Growth_PRICE_ID'):
                 actual_plan_tier = PlanTier.GROWTH
-            elif price_id == os.getenv('STRIPE_SCALE_PRICE_ID'):
+                logger.info(f"Matched GROWTH plan")
+            elif price_id == os.getenv('STRIPE_Scale_PRICE_ID'):
                 actual_plan_tier = PlanTier.SCALE
-            elif price_id == os.getenv('STRIPE_PRO_PRICE_ID'):
+                logger.info(f"Matched SCALE plan")
+            elif price_id == os.getenv('STRIPE_Pro_PRICE_ID'):
                 actual_plan_tier = PlanTier.PRO
-            elif price_id == os.getenv('STRIPE_FREE_PRICE_ID'):
+                logger.info(f"Matched PRO plan")
+            elif price_id == os.getenv('STRIPE_FreeTrial_PRICE_ID'):
                 actual_plan_tier = PlanTier.TRIAL
+                logger.info(f"Matched TRIAL plan")
+            else:
+                logger.warning(f"Unknown price_id: {price_id} - defaulting to TRIAL")
         
         result = await db.execute(
             select(Agent).where(Agent.stripe_customer_id == customer_id)
@@ -201,10 +209,10 @@ async def create_checkout_session(
     
     # Map plan to Stripe price ID
     STRIPE_PLAN_MAPPING = {
-        "starter": os.getenv('STRIPE_STARTER_PRICE_ID'),
-        "growth": os.getenv('STRIPE_GROWTH_PRICE_ID'), 
-        "scale": os.getenv('STRIPE_SCALE_PRICE_ID'),
-        "pro": os.getenv('STRIPE_PRO_PRICE_ID'),
+        "starter": os.getenv('STRIPE_Starter_PRICE_ID'),
+        "growth": os.getenv('STRIPE_Growth_PRICE_ID'), 
+        "scale": os.getenv('STRIPE_Scale_PRICE_ID'),
+        "pro": os.getenv('STRIPE_Pro_PRICE_ID'),
     }
 
     price_id = STRIPE_PLAN_MAPPING.get(plan)
