@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What's Your Rate? - Mortgage Calculator | {% if agent %}{{ agent.name }}{% else %}EZRealtor{% endif %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #1a1a1a;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .rate-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .rate-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .calculator {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .result-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+            border: 2px solid #667eea;
+            display: none;
+        }
+        
+        .result-box.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .breakdown {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            text-align: left;
+        }
+        
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        
+        .btn-calculate {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-calculate:active {
+            transform: translateY(0);
+        }
+        
+        .btn-calculate:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .lead-capture {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 2px dashed #ffc107;
+            display: none;
+        }
+        
+        .lead-capture.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .lead-capture h3 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .lead-capture p {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .agent-info {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .agent-info img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
+        
+        .agent-info h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .agent-info p {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {% if agent and agent.logo_url %}
+            <img src="{{ agent.logo_url }}" alt="{{ agent.name }}" style="height: 50px; margin-bottom: 15px;">
+            {% endif %}
+            
+            <h1>💰 What's Your Monthly Payment?</h1>
+            <p style="color: #666; font-size: 16px;">Calculate your mortgage with today's rates</p>
+            
+            <div class="rate-badge" id="currentRate">
+                <span id="rateValue">Loading...</span>%
+            </div>
+            <div class="rate-label">Current 30-Year Fixed Rate</div>
+        </div>
+
+        <div class="calculator">
+            <form id="calculatorForm">
+                <div class="input-group">
+                    <label for="homePrice">Home Price</label>
+                    <input type="number" id="homePrice" placeholder="$500,000" value="500000" required min="50000" step="1000">
+                </div>
+
+                <div class="input-group">
+                    <label for="downPayment">Down Payment (%)</label>
+                    <select id="downPayment">
+                        <option value="3.5">3.5% (FHA)</option>
+                        <option value="5">5%</option>
+                        <option value="10">10%</option>
+                        <option value="15">15%</option>
+                        <option value="20" selected>20%</option>
+                        <option value="25">25%</option>
+                        <option value="30">30%</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="loanTerm">Loan Term</label>
+                    <select id="loanTerm">
+                        <option value="30" selected>30 Years</option>
+                        <option value="15">15 Years</option>
+                        <option value="20">20 Years</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-calculate" id="calculateBtn">
+                    🧮 Calculate My Payment
+                </button>
+            </form>
+
+            <div class="result-box" id="resultBox">
+                <div class="result-label">Your Estimated Monthly Payment</div>
+                <div class="result-value" id="monthlyPayment">$0</div>
+                
+                <div class="breakdown">
+                    <div class="breakdown-item">
+                        <span>Principal & Interest:</span>
+                        <strong id="piPayment">$0</strong>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Property Tax (est.):</span>
+                        <strong id="taxPayment">$0</strong>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Insurance (est.):</span>
+                        <strong id="insurancePayment">$0</strong>
+                    </div>
+                    <div class="breakdown-item" id="pmiRow" style="display: none;">
+                        <span>PMI (if &lt;20% down):</span>
+                        <strong id="pmiPayment">$0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lead-capture" id="leadCapture">
+                <h3>📧 Want a Detailed Breakdown?</h3>
+                <p>Enter your email to receive a personalized report with closing costs, tax benefits, and more!</p>
+                
+                <form id="leadForm">
+                    <div class="input-group">
+                        <input type="text" id="fullName" placeholder="Your Name" required>
+                    </div>
+                    <div class="input-group">
+                        <input type="email" id="email" placeholder="Your Email" required>
+                    </div>
+                    <button type="submit" class="btn-calculate">
+                        📨 Send Me the Full Report
+                    </button>
+                </form>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                <h3>✅ Report Sent!</h3>
+                <p>Check your email for your personalized mortgage analysis.</p>
+            </div>
+        </div>
+
+        {% if agent %}
+        <div class="agent-info">
+            {% if agent.headshot_url %}
+            <img src="{{ agent.headshot_url }}" alt="{{ agent.name }}">
+            {% endif %}
+            <h3>{{ agent.name }}</h3>
+            <p>{{ agent.title or 'Real Estate Professional' }}</p>
+            {% if agent.phone %}
+            <p>📞 {{ agent.phone }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="footer">
+            <p>* This calculator provides estimates only. Actual rates and payments may vary.</p>
+            <p>Property tax and insurance estimates based on national averages.</p>
+        </div>
+    </div>
+
+    <script>
+        let currentRate = 6.3; // Default rate
+        let leadData = {};
+
+        // Fetch current mortgage rate from FRED
+        async function fetchMortgageRate() {
+            try {
+                const response = await fetch('https://api.stlouisfed.org/fred/series/observations?series_id=MORTGAGE30US&api_key=4ecdf7e1d3074aada345e8ef35dcb355&file_type=json&limit=1&sort_order=desc');
+                const data = await response.json();
+                
+                if (data.observations && data.observations[0]) {
+                    currentRate = parseFloat(data.observations[0].value);
+                    document.getElementById('rateValue').textContent = currentRate.toFixed(2);
+                }
+            } catch (error) {
+                console.error('Error fetching rate:', error);
+                document.getElementById('rateValue').textContent = currentRate.toFixed(2);
+            }
+        }
+
+        // Calculate mortgage payment
+        function calculateMortgage(principal, rate, years) {
+            const monthlyRate = rate / 100 / 12;
+            const numPayments = years * 12;
+            
+            const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
+                                  (Math.pow(1 + monthlyRate, numPayments) - 1);
+            
+            return monthlyPayment;
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return '$' + Math.round(amount).toLocaleString();
+        }
+
+        // Handle calculator form
+        document.getElementById('calculatorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const homePrice = parseFloat(document.getElementById('homePrice').value);
+            const downPaymentPercent = parseFloat(document.getElementById('downPayment').value);
+            const loanTerm = parseInt(document.getElementById('loanTerm').value);
+            
+            const downPaymentAmount = homePrice * (downPaymentPercent / 100);
+            const loanAmount = homePrice - downPaymentAmount;
+            
+            // Calculate P&I
+            const piPayment = calculateMortgage(loanAmount, currentRate, loanTerm);
+            
+            // Estimate property tax (1.2% annually / 12)
+            const taxPayment = (homePrice * 0.012) / 12;
+            
+            // Estimate insurance (0.5% annually / 12)
+            const insurancePayment = (homePrice * 0.005) / 12;
+            
+            // Calculate PMI if down payment < 20%
+            let pmiPayment = 0;
+            if (downPaymentPercent < 20) {
+                pmiPayment = (loanAmount * 0.005) / 12; // 0.5% annually
+                document.getElementById('pmiRow').style.display = 'flex';
+            } else {
+                document.getElementById('pmiRow').style.display = 'none';
+            }
+            
+            const totalPayment = piPayment + taxPayment + insurancePayment + pmiPayment;
+            
+            // Store data for lead capture
+            leadData = {
+                home_price: homePrice,
+                down_payment_percent: downPaymentPercent,
+                loan_term: loanTerm,
+                monthly_payment: totalPayment,
+                interest_rate: currentRate,
+                lead_type: 'mortgage_calculator'
+            };
+            
+            // Display results
+            document.getElementById('monthlyPayment').textContent = formatCurrency(totalPayment);
+            document.getElementById('piPayment').textContent = formatCurrency(piPayment);
+            document.getElementById('taxPayment').textContent = formatCurrency(taxPayment);
+            document.getElementById('insurancePayment').textContent = formatCurrency(insurancePayment);
+            document.getElementById('pmiPayment').textContent = formatCurrency(pmiPayment);
+            
+            document.getElementById('resultBox').classList.add('show');
+            document.getElementById('leadCapture').classList.add('show');
+            
+            // Scroll to results
+            document.getElementById('resultBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        // Handle lead capture form
+        document.getElementById('leadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            
+            const leadSubmission = {
+                ...leadData,
+                full_name: fullName,
+                email: email
+            };
+            
+            try {
+                const response = await fetch('/api/v1/leads/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(leadSubmission)
+                });
+                
+                if (response.ok) {
+                    document.getElementById('leadCapture').style.display = 'none';
+                    document.getElementById('successMessage').classList.add('show');
+                    
+                    // Track conversion
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'lead_submission', {
+                            'event_category': 'mortgage_calculator',
+                            'value': leadData.monthly_payment
+                        });
+                    }
+                } else {
+                    alert('Sorry, there was an error. Please try again or call us directly.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Sorry, there was an error. Please try again or call us directly.');
+            }
+        });
+
+        // Fetch rate on page load
+        fetchMortgageRate();
+    </script>
+</body>
+</html>
+

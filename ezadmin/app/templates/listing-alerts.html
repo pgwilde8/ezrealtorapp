@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Off-Market Listing Alerts | {% if agent %}{{ agent.name }}{% else %}EZRealtor{% endif %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 36px;
+            color: #1a1a1a;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+        
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .benefits {
+            text-align: left;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        
+        .benefit {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        
+        .benefit:last-child {
+            margin-bottom: 0;
+        }
+        
+        .benefit .icon {
+            color: #10b981;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .step2 {
+            display: none;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 2px dashed #e5e7eb;
+            text-align: left;
+        }
+        
+        .step2.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .step2 h3 {
+            text-align: center;
+            color: #1a1a1a;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+        
+        .success {
+            display: none;
+            text-align: center;
+        }
+        
+        .success.show {
+            display: block;
+        }
+        
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .success h2 {
+            color: #059669;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        
+        .success p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .agent-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .agent-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .agent-details {
+            text-align: left;
+        }
+        
+        .agent-details h4 {
+            color: #1a1a1a;
+            font-size: 16px;
+            margin-bottom: 3px;
+        }
+        
+        .agent-details p {
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .trust-line {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .card { padding: 35px 25px; }
+            h1 { font-size: 28px; }
+            .subtitle { font-size: 16px; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div id="formSection">
+            <div class="badge">🔓 Exclusive Access</div>
+            <h1>Get Homes Before They Hit Zillow</h1>
+            <p class="subtitle">Receive daily alerts with off-market and pre-listing properties that match what you're looking for</p>
+            
+            <div class="benefits">
+                <div class="benefit">
+                    <span class="icon">✓</span>
+                    <span>See properties 3-7 days before public listing</span>
+                </div>
+                <div class="benefit">
+                    <span class="icon">✓</span>
+                    <span>Only homes that match your criteria (no spam)</span>
+                </div>
+                <div class="benefit">
+                    <span class="icon">✓</span>
+                    <span>Direct line to {% if agent %}{{ agent.name }}{% else %}your agent{% endif %} for showings</span>
+                </div>
+                <div class="benefit">
+                    <span class="icon">✓</span>
+                    <span>Unsubscribe anytime with one click</span>
+                </div>
+            </div>
+
+            <form id="alertForm">
+                <!-- Step 1: Email Only -->
+                <div id="step1">
+                    <input type="email" id="email" placeholder="Your Email Address" required>
+                    <button type="submit" class="btn" id="step1Btn">
+                        🔔 Start Getting Alerts
+                    </button>
+                </div>
+
+                <!-- Step 2: Preferences (Shows after email) -->
+                <div id="step2" class="step2">
+                    <h3>Great! Now tell us what you're looking for...</h3>
+                    
+                    <div>
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" placeholder="John Smith" required>
+                    </div>
+
+                    <div>
+                        <label for="areas">Preferred Cities/Neighborhoods</label>
+                        <input type="text" id="areas" placeholder="e.g., Downtown, Westside, Maplewood" required>
+                    </div>
+
+                    <div class="grid-2">
+                        <div>
+                            <label for="bedrooms">Min Bedrooms</label>
+                            <select id="bedrooms">
+                                <option value="">Any</option>
+                                <option value="1">1+</option>
+                                <option value="2">2+</option>
+                                <option value="3">3+</option>
+                                <option value="4">4+</option>
+                                <option value="5">5+</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="budget">Max Budget</label>
+                            <select id="budget">
+                                <option value="">Any</option>
+                                <option value="300k">$300K</option>
+                                <option value="500k">$500K</option>
+                                <option value="750k">$750K</option>
+                                <option value="1m">$1M</option>
+                                <option value="1.5m">$1.5M+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="phone">Phone (Optional - for hot properties)</label>
+                        <input type="tel" id="phone" placeholder="(555) 123-4567">
+                    </div>
+
+                    <button type="submit" class="btn" id="step2Btn">
+                        ✅ Activate My Alerts
+                    </button>
+                </div>
+            </form>
+
+            {% if agent %}
+            <div class="agent-info">
+                {% if agent.headshot_url %}
+                <img src="{{ agent.headshot_url }}" alt="{{ agent.name }}">
+                {% endif %}
+                <div class="agent-details">
+                    <h4>{{ agent.name }}</h4>
+                    <p>{{ agent.title or 'Real Estate Professional' }}</p>
+                    {% if agent.phone %}
+                    <p style="color: #667eea; font-weight: 600;">📞 {{ agent.phone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <p class="trust-line">🔒 Your info is safe. No spam. Unsubscribe anytime.</p>
+        </div>
+
+        <div id="successSection" class="success">
+            <div class="success-icon">✅</div>
+            <h2>You're Subscribed!</h2>
+            <p><strong>Check your email</strong> - we just sent your first batch of matches.</p>
+            <p style="margin-top: 20px;">New properties matching your criteria will arrive daily.</p>
+            {% if agent and agent.phone %}
+            <p style="margin-top: 25px; padding: 15px; background: #fef3c7; border-radius: 8px; color: #92400e;">
+                <strong>See something you like?</strong><br>
+                Text "INFO" to <a href="tel:{{ agent.phone }}" style="color: #667eea; text-decoration: none; font-weight: bold;">{{ agent.phone }}</a>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('alertForm');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const formSection = document.getElementById('formSection');
+        const successSection = document.getElementById('successSection');
+        
+        let emailCaptured = '';
+
+        // Step 1: Capture email first
+        step1.addEventListener('submit', function(e) {
+            // Don't submit yet, just validate and expand
+        });
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            
+            // If Step 2 not shown yet, capture email and expand
+            if (!step2.classList.contains('show')) {
+                emailCaptured = email;
+                step2.classList.add('show');
+                document.getElementById('step1Btn').textContent = '✓ Email Captured';
+                document.getElementById('step1Btn').style.background = '#10b981';
+                step2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+            
+            // Step 2: Submit full form
+            const submitBtn = document.getElementById('step2Btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Setting up your alerts...';
+            
+            const leadData = {
+                email: email,
+                full_name: document.getElementById('name').value,
+                preferred_areas: document.getElementById('areas').value,
+                bedrooms: document.getElementById('bedrooms').value,
+                budget_range: document.getElementById('budget').value,
+                phone: document.getElementById('phone').value,
+                lead_type: 'listing_alerts'
+            };
+            
+            try {
+                const response = await fetch('/api/v1/leads/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(leadData)
+                });
+                
+                if (response.ok) {
+                    formSection.style.display = 'none';
+                    successSection.classList.add('show');
+                    
+                    // Track conversion
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'lead_submission', {
+                            'event_category': 'listing_alerts',
+                            'value': leadData.budget_range
+                        });
+                    }
+                } else {
+                    alert('Sorry, there was an error. Please try again.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '✅ Activate My Alerts';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✅ Activate My Alerts';
+            }
+        });
+
+        // Phone formatting
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let phone = e.target.value.replace(/\D/g, '');
+            if (phone.length >= 6) {
+                phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            } else if (phone.length >= 3) {
+                phone = phone.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+            }
+            e.target.value = phone;
+        });
+    </script>
+</body>
+</html>
+

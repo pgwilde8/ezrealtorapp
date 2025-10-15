@@ -339,6 +339,10 @@ class PasswordResetCompleteRequest(BaseModel):
     token: str
     new_password: str
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 @router.post("/reset-password-complete")
 async def complete_password_reset(
     reset_data: PasswordResetCompleteRequest,
@@ -384,6 +388,52 @@ async def complete_password_reset(
     except Exception as e:
         logger.error(f"Error completing password reset: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to reset password")
+
+@router.post("/change-password")
+async def change_password(
+    password_data: ChangePasswordRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_db)
+):
+    """Change password for authenticated user"""
+    
+    try:
+        # Verify token
+        payload = verify_token(credentials.credentials)
+        agent_id = payload.get("sub")
+        
+        if not agent_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Get agent from database
+        result = await db.execute(
+            select(Agent).where(Agent.id == agent_id)
+        )
+        agent = result.scalar_one_or_none()
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Verify current password
+        if agent.password_hash:
+            if not verify_password(password_data.current_password, agent.password_hash):
+                raise HTTPException(status_code=400, detail="Current password is incorrect")
+        # If no password set yet, skip current password verification (new users)
+        
+        # Hash and set new password
+        new_hashed_password = hash_password(password_data.new_password)
+        agent.password_hash = new_hashed_password
+        await db.commit()
+        
+        logger.info(f"Password changed successfully for agent: {agent.email}")
+        
+        return {"message": "Password changed successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error changing password: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to change password")
 
 @router.get("/verify")
 async def verify_current_user(

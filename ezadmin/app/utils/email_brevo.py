@@ -14,13 +14,14 @@ class BrevoEmailService:
         if not self.api_key:
             logger.warning("BREVO_API_KEY not configured - email sending will fail")
     
-    async def send_welcome_email(self, to_email: str, to_name: str = None, plan_tier: str = None) -> bool:
+    async def send_welcome_email(self, to_email: str, to_name: str = None, plan_tier: str = None, temp_password: str = None) -> bool:
         """Send welcome email using Brevo API
         
         Args:
             to_email: Recipient email address
             to_name: Recipient name (optional)
             plan_tier: Plan tier for personalized messaging (optional)
+            temp_password: Temporary password for new users (optional)
         
         Returns:
             bool: True if email sent successfully, False otherwise
@@ -44,7 +45,19 @@ class BrevoEmailService:
             # Customize message based on plan tier
             plan_message = ""
             if plan_tier:
-                plan_message = f"<p>You're on the <strong>{plan_tier}</strong> plan.</p>"
+                plan_message = f"<p>You're on the <strong>{plan_tier.upper()}</strong> plan.</p>"
+            
+            # Add login credentials section if temp password provided
+            login_section = ""
+            if temp_password:
+                login_section = f"""
+                <div style="background: #f3f4f6; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0;">
+                    <h3 style="margin-top: 0; color: #1f2937;">Your Login Credentials:</h3>
+                    <p style="margin: 10px 0;"><strong>Email:</strong> {to_email}</p>
+                    <p style="margin: 10px 0;"><strong>Password:</strong> <code style="background: white; padding: 4px 8px; border-radius: 4px; font-family: monospace; color: #dc2626;">{temp_password}</code></p>
+                    <p style="margin: 10px 0; font-size: 14px; color: #6b7280;">⚠️ Please change this password after your first login for security.</p>
+                </div>
+                """
             
             data = {
                 "sender": {
@@ -58,6 +71,7 @@ class BrevoEmailService:
                     <h1 style="color: #2563eb;">Welcome to EZRealtor.app, {recipient_name}!</h1>
                     <p style="font-size: 16px; line-height: 1.6;">Your AI-powered lead generation system is now active and ready to capture leads.</p>
                     {plan_message}
+                    {login_section}
                     <p style="font-size: 16px; line-height: 1.6;">Get started by logging into your dashboard:</p>
                     <p style="text-align: center; margin: 30px 0;">
                         <a href="https://login.ezrealtor.app" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Go to Dashboard</a>

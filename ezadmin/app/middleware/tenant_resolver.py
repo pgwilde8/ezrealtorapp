@@ -45,6 +45,16 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # TODO: Look up tenant by custom domain in database
         
         response = await call_next(request)
+        
+        # Add CSP header to allow AlpineJS (requires unsafe-eval)
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self' http: https: data: blob:; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://js.stripe.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; "
+            "img-src 'self' data: https:; "
+            "font-src 'self' data: https://cdnjs.cloudflare.com;"
+        )
+        
         return response
 
 async def get_current_tenant(request: Request) -> Optional[str]:

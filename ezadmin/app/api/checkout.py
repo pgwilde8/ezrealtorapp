@@ -96,6 +96,15 @@ async def checkout_success(
             # Generate unique slug for new agent
             unique_slug = await generate_unique_slug(customer.email, db)
             
+            # Generate temporary password for new user
+            import secrets
+            import string
+            temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+            
+            # Hash the password
+            from app.utils.security import hash_password
+            hashed_password = hash_password(temp_password)
+            
             # Create new agent if none found
             agent = Agent(
                 email=customer.email,
@@ -104,11 +113,15 @@ async def checkout_success(
                 stripe_subscription_id=subscription_id,
                 status=AgentStatus.ACTIVE,
                 plan_tier=actual_plan_tier,  # Use actual plan from Stripe
-                slug=unique_slug
+                slug=unique_slug,
+                password_hash=hashed_password  # Set initial password
             )
             db.add(agent)
             await db.commit()
             await db.refresh(agent)
+            
+            # Store temp password to send in email
+            agent.temp_password = temp_password
         else:
             # Update existing agent with correct plan from Stripe
             agent.plan_tier = actual_plan_tier
@@ -120,10 +133,14 @@ async def checkout_success(
         # Send welcome email with login instructions
         try:
             from app.utils.email_brevo import email_service
+            # Get temp password if this is a new agent
+            temp_password = getattr(agent, 'temp_password', None)
+            
             email_sent = await email_service.send_welcome_email(
                 to_email=customer.email,
                 to_name=customer.name or agent.name,
-                plan_tier=agent.plan_tier
+                plan_tier=agent.plan_tier,
+                temp_password=temp_password  # Send password for new users
             )
             if email_sent:
                 logger.info(f"Welcome email sent to {customer.email}")

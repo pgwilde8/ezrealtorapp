@@ -85,15 +85,86 @@ async def homepage(request: Request):
     
     # If this is the login subdomain, serve the login page
     if is_login_subdomain(host):
-        return templates.TemplateResponse("auth/login.html", {"request": request})
+        return templates.TemplateResponse("auth/simple_login.html", {"request": request})
     
     # Otherwise serve the marketing homepage
     return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/dashboard")
+async def agent_dashboard(request: Request):
+    """Agent dashboard - will authenticate via JavaScript/localStorage"""
+    # Return a page that checks localStorage for token and loads dashboard
+    return templates.TemplateResponse("realtor_dashboard.html", {
+        "request": request
+    })
 
 @app.get("/admin")
 async def admin_dashboard_page(request: Request):
     """Admin dashboard HTML page"""
     return templates.TemplateResponse("admin/index.html", {"request": request})
+
+@app.get("/whats-my-rate")
+async def whats_my_rate_calculator(request: Request, db: AsyncSession = Depends(get_db)):
+    """Mortgage rate calculator lead capture page"""
+    from app.middleware.auth import get_agent_slug_from_host
+    from sqlalchemy import select
+    from app.models.agent import Agent
+    
+    # Get agent from subdomain
+    host = request.headers.get("host", "")
+    agent_slug = get_agent_slug_from_host(host)
+    
+    agent = None
+    if agent_slug:
+        result = await db.execute(select(Agent).where(Agent.slug == agent_slug))
+        agent = result.scalar_one_or_none()
+    
+    return templates.TemplateResponse("whats-my-rate.html", {
+        "request": request,
+        "agent": agent
+    })
+
+@app.get("/get-started")
+async def get_started_page(request: Request, db: AsyncSession = Depends(get_db)):
+    """High-converting lead capture page (lcpage4)"""
+    from app.middleware.auth import get_agent_slug_from_host
+    from sqlalchemy import select
+    from app.models.agent import Agent
+    
+    # Get agent from subdomain
+    host = request.headers.get("host", "")
+    agent_slug = get_agent_slug_from_host(host)
+    
+    agent = None
+    if agent_slug:
+        result = await db.execute(select(Agent).where(Agent.slug == agent_slug))
+        agent = result.scalar_one_or_none()
+    
+    return templates.TemplateResponse("lcpage4.html", {
+        "request": request,
+        "agent": agent
+    })
+
+@app.get("/listing-alerts")
+async def listing_alerts_page(request: Request, db: AsyncSession = Depends(get_db)):
+    """Simple off-market listing alerts signup"""
+    from app.middleware.auth import get_agent_slug_from_host
+    from sqlalchemy import select
+    from app.models.agent import Agent
+    
+    # Get agent from subdomain
+    host = request.headers.get("host", "")
+    agent_slug = get_agent_slug_from_host(host)
+    
+    agent = None
+    if agent_slug:
+        result = await db.execute(select(Agent).where(Agent.slug == agent_slug))
+        agent = result.scalar_one_or_none()
+    
+    return templates.TemplateResponse("listing-alerts.html", {
+        "request": request,
+        "agent": agent
+    })
 
 @app.get("/lead-buyer")
 async def lead_buyer_form(request: Request, db: AsyncSession = Depends(get_db)):

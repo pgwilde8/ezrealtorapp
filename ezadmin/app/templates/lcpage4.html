@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if agent %}{{ agent.name }} - Real Estate in {{ agent.city or 'Your Area' }}{% else %}Find Your Perfect Home{% endif %}</title>
+    <meta name="description" content="Get personalized home matches and expert guidance from {% if agent %}{{ agent.name }}{% else %}a local real estate professional{% endif %}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        
+        .top-contacts {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .phone-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .btn-book {
+            background: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .btn-book:hover {
+            background: #1d4ed8;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+        
+        .hero .subhead {
+            font-size: 20px;
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+        
+        .trust-strip {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* Form Container */
+        .form-container {
+            max-width: 500px;
+            margin: -50px auto 0;
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .form-container h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1a1a1a;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Content Sections */
+        .section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+        
+        .feature-card {
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+        
+        .feature-card p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        
+        .proof-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2563eb;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        /* Testimonials */
+        .testimonial {
+            background: #f9fafb;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .testimonial-author {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        
+        .stars {
+            color: #fbbf24;
+            font-size: 18px;
+        }
+        
+        /* Secondary CTA */
+        .cta-block {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 50px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .cta-block h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+        
+        .cta-block p {
+            font-size: 18px;
+            margin-bottom: 25px;
+            opacity: 0.95;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #059669;
+            padding: 14px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-block;
+            font-size: 16px;
+        }
+        
+        .btn-secondary:hover {
+            background: #f0fdf4;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1f2937;
+            color: #9ca3af;
+            padding: 40px 20px 20px;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .footer p {
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        
+        .footer a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+        
+        .fair-housing {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #374151;
+        }
+        
+        /* Success State */
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .success-message h3 {
+            font-size: 28px;
+            color: #059669;
+            margin-bottom: 15px;
+        }
+        
+        .success-message p {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        
+        /* Step 2 Expanded Form */
+        .step2 {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #e5e7eb;
+        }
+        
+        .step2.show {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero .subhead { font-size: 18px; }
+            .trust-strip { font-size: 12px; gap: 15px; }
+            .section { padding: 40px 15px; }
+            .form-container { margin: -30px 15px 0; padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="logo">
+            {% if agent and agent.logo_url %}
+            <img src="{{ agent.logo_url }}" alt="{{ agent.name }}" style="height: 35px;">
+            {% elif agent %}
+            🏠 {{ agent.name }}
+            {% else %}
+            🏠 EZRealtor
+            {% endif %}
+        </div>
+        <div class="top-contacts">
+            <a href="tel:{% if agent and agent.phone %}{{ agent.phone }}{% else %}5555551234{% endif %}" class="phone-link">
+                📞 Call/Text {% if agent and agent.phone %}{{ agent.phone }}{% else %}(555) 555-1234{% endif %}
+            </a>
+            <a href="#contact" class="btn-book">Book a 15-min Call</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <h1>
+                {% if agent and agent.hero_headline %}
+                    {{ agent.hero_headline }}
+                {% else %}
+                    Find the Right Home Without Wasting Weekends
+                {% endif %}
+            </h1>
+            <p class="subhead">
+                {% if agent and agent.hero_subhead %}
+                    {{ agent.hero_subhead }}
+                {% else %}
+                    Daily alerts with only homes that fit—no spam, no endless scrolling
+                {% endif %}
+            </p>
+            
+            <div class="trust-strip">
+                <div class="trust-item">
+                    ✓ {% if agent and agent.clients_helped %}{{ agent.clients_helped }}+{% else %}1,248{% endif %} local buyers helped
+                </div>
+                <div class="trust-item">
+                    ⭐⭐⭐⭐⭐ 4.9 on Google
+                </div>
+                <div class="trust-item">
+                    📍 {% if agent and agent.years_experience %}{{ agent.years_experience }}{% else %}18{% endif %} years in {% if agent and agent.city %}{{ agent.city }}{% else %}your area{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead Form (Raised Card) -->
+    <div class="form-container">
+        <div id="formStep1">
+            <h2>Get Your Personalized Matches</h2>
+            
+            <form id="leadForm">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" placeholder="John Smith" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="john@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="leadType">I'm a...</label>
+                    <select id="leadType" required>
+                        <option value="">Select One</option>
+                        <option value="buyer">🏠 Buyer - Looking to purchase</option>
+                        <option value="seller">💰 Seller - Want to sell my home</option>
+                        <option value="both">🔄 Both - Buy and sell</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary" id="continueBtn">
+                    Continue →
+                </button>
+            </form>
+        </div>
+
+        <!-- Step 2: Expanded Form (Shows after Step 1) -->
+        <div id="formStep2" class="step2">
+            <h3 style="font-size: 20px; margin-bottom: 20px; text-align: center;">Just a Few More Details...</h3>
+            
+            <form id="detailsForm">
+                <!-- Buyer Fields -->
+                <div id="buyerFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="budget">Budget Range</label>
+                        <select id="budget">
+                            <option value="">Select Range</option>
+                            <option value="under_300k">Under $300K</option>
+                            <option value="300k_500k">$300K - $500K</option>
+                            <option value="500k_750k">$500K - $750K</option>
+                            <option value="750k_1m">$750K - $1M</option>
+                            <option value="over_1m">Over $1M</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="areas">Preferred Areas/Cities</label>
+                        <input type="text" id="areas" placeholder="e.g., Downtown, Westside, Maplewood">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label for="bedrooms">Bedrooms</label>
+                            <select id="bedrooms">
+                                <option value="">Any</option>
+                                <option value="1">1+</option>
+                                <option value="2">2+</option>
+                                <option value="3">3+</option>
+                                <option value="4">4+</option>
+                                <option value="5">5+</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="timeline">Timeline</label>
+                            <select id="timeline">
+                                <option value="">Select</option>
+                                <option value="0-3">0-3 months</option>
+                                <option value="3-6">3-6 months</option>
+                                <option value="6-12">6-12 months</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seller Fields -->
+                <div id="sellerFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="address">Property Address</label>
+                        <input type="text" id="address" placeholder="123 Main St, City, State">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sellingReason">Reason for Selling</label>
+                        <select id="sellingReason">
+                            <option value="">Select Reason</option>
+                            <option value="upgrading">Upgrading to larger home</option>
+                            <option value="downsizing">Downsizing</option>
+                            <option value="relocating">Relocating for work</option>
+                            <option value="investment">Investment property</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sellingTimeline">Timeline to Sell</label>
+                        <select id="sellingTimeline">
+                            <option value="">Select Timeline</option>
+                            <option value="asap">Ready now (ASAP)</option>
+                            <option value="1-3">1-3 months</option>
+                            <option value="3-6">3-6 months</option>
+                            <option value="exploring">Just exploring</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number (Optional)</label>
+                    <input type="tel" id="phone" placeholder="(555) 123-4567">
+                </div>
+
+                <div style="font-size: 12px; color: #6b7280; margin-bottom: 15px;">
+                    <input type="checkbox" id="consent" required style="width: auto; margin-right: 5px;">
+                    <label for="consent" style="display: inline; font-weight: normal;">
+                        I agree to be contacted by call/text/email about my inquiry. <a href="#" style="color: #2563eb;">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    Get My Personalized Matches
+                </button>
+            </form>
+        </div>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="success-message">
+            <div class="success-icon">✅</div>
+            <h3>You're All Set!</h3>
+            <p>{% if agent %}{{ agent.name }}{% else %}We{% endif %}'ll send your personalized matches within 24 hours.</p>
+            <p style="font-weight: 600; margin-top: 20px;">Prefer to chat now?</p>
+            <a href="tel:{% if agent and agent.phone %}{{ agent.phone }}{% else %}5555551234{% endif %}" class="btn-book" style="display: inline-block; margin-top: 10px;">
+                📞 Call {% if agent and agent.phone %}{{ agent.phone }}{% else %}(555) 555-1234{% endif %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Why Work With Me -->
+    <div class="section" style="background: #f9fafb;">
+        <h2 style="text-align: center; font-size: 32px; margin-bottom: 50px;">Why Work With {% if agent %}{{ agent.name }}{% else %}Me{% endif %}?</h2>
+        <div class="section-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Fast Results</h3>
+                <span class="proof-number">12 Days</span>
+                <p>Average time to accepted offer (last 12 months)</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Better Prices</h3>
+                <span class="proof-number">3.2%</span>
+                <p>Average over asking price for sellers</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔓</div>
+                <h3>Off-Market Access</h3>
+                <span class="proof-number">Weekly</span>
+                <p>Exclusive pocket listings shared with my buyers</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- What You Get -->
+    <div class="section">
+        <h2 style="text-align: center; font-size: 32px; margin-bottom: 20px;">What You Get Immediately</h2>
+        <p style="text-align: center; color: #6b7280; margin-bottom: 40px; font-size: 18px;">Here's what happens after you submit</p>
+        
+        <div class="section-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📧</div>
+                <h3>Within 1 Hour</h3>
+                <p>Personalized email with 3-5 curated properties that match your criteria</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📞</div>
+                <h3>Within 24 Hours</h3>
+                <p>Personal call to discuss your needs and schedule showings</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Ongoing Alerts</h3>
+                <p>Daily updates when new properties match your search</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials -->
+    <div class="section" style="background: #f9fafb;">
+        <h2 style="text-align: center; font-size: 32px; margin-bottom: 40px;">What Clients Say</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            <div class="testimonial">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Found our dream home in just 2 weeks! The personalized approach made all the difference."</p>
+                <p class="testimonial-author">— Sarah & Mike T.</p>
+            </div>
+            <div class="testimonial">
+                <div class="stars">⭐⭐⭐⭐⭐</div>
+                <p class="testimonial-text">"Sold our home for $35K over asking. Worth every penny of the commission!"</p>
+                <p class="testimonial-author">— Jennifer L.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary CTA -->
+    <div class="cta-block" id="contact">
+        <h2>Ready to Start Your Home Journey?</h2>
+        <p>Book a free 15-minute strategy call to discuss your goals</p>
+        <a href="tel:{% if agent and agent.phone %}{{ agent.phone }}{% else %}5555551234{% endif %}" class="btn-secondary">
+            📞 Call Now
+        </a>
+        {% if agent and agent.calendar_url %}
+        <a href="{{ agent.calendar_url }}" class="btn-secondary" style="margin-left: 15px;">
+            📅 Schedule Online
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-content">
+            <p><strong>{% if agent %}{{ agent.name }}{% else %}Real Estate Professional{% endif %}</strong></p>
+            {% if agent %}
+            <p>
+                {% if agent.brokerage_name %}{{ agent.brokerage_name }}<br>{% endif %}
+                {% if agent.license_number %}License #{{ agent.license_number }}<br>{% endif %}
+                {% if agent.office_address %}{{ agent.office_address }}{% endif %}
+            </p>
+            {% endif %}
+            
+            <p style="margin-top: 20px;">
+                <a href="#">Privacy Policy</a> • 
+                <a href="#">Terms of Service</a>
+            </p>
+            
+            <div class="fair-housing">
+                <p style="font-size: 11px;">
+                    <strong>Fair Housing Notice:</strong> We are pledged to the letter and spirit of U.S. policy for the achievement of equal housing opportunity throughout the Nation. We encourage and support an affirmative advertising and marketing program in which there are no barriers to obtaining housing because of race, color, religion, sex, handicap, familial status, or national origin.
+                </p>
+                <p style="font-size: 11px; margin-top: 10px;">
+                    By submitting this form, you agree to be contacted by {% if agent %}{{ agent.name }}{% else %}us{% endif %} by call, email, or text (including automated means) about real estate services. Message & data rates may apply. Reply STOP to opt-out.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form1 = document.getElementById('leadForm');
+        const form2 = document.getElementById('detailsForm');
+        const step1 = document.getElementById('formStep1');
+        const step2 = document.getElementById('formStep2');
+        const successMsg = document.getElementById('successMessage');
+        const buyerFields = document.getElementById('buyerFields');
+        const sellerFields = document.getElementById('sellerFields');
+        
+        let leadData = {};
+
+        // Step 1: Capture basic info
+        form1.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            leadData.name = document.getElementById('name').value;
+            leadData.email = document.getElementById('email').value;
+            leadData.leadType = document.getElementById('leadType').value;
+            
+            // Show appropriate fields based on buyer/seller
+            if (leadData.leadType === 'buyer' || leadData.leadType === 'both') {
+                buyerFields.style.display = 'block';
+            }
+            if (leadData.leadType === 'seller' || leadData.leadType === 'both') {
+                sellerFields.style.display = 'block';
+            }
+            
+            // Expand to Step 2
+            step2.classList.add('show');
+            step2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        // Step 2: Submit full lead
+        form2.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            // Collect Step 2 data
+            const fullData = {
+                full_name: leadData.name,
+                email: leadData.email,
+                lead_type: leadData.leadType,
+                phone: document.getElementById('phone').value,
+                
+                // Buyer data
+                budget_range: document.getElementById('budget').value,
+                preferred_areas: document.getElementById('areas').value,
+                bedrooms: document.getElementById('bedrooms').value,
+                timeline: document.getElementById('timeline').value,
+                
+                // Seller data
+                property_address: document.getElementById('address').value,
+                selling_reason: document.getElementById('sellingReason').value,
+                selling_timeline: document.getElementById('sellingTimeline').value
+            };
+            
+            try {
+                const response = await fetch('/api/v1/leads/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(fullData)
+                });
+                
+                if (response.ok) {
+                    // Show success
+                    step1.style.display = 'none';
+                    step2.style.display = 'none';
+                    successMsg.classList.add('show');
+                    
+                    // Track conversion
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'lead_submission', {
+                            'event_category': fullData.lead_type,
+                            'event_label': fullData.budget_range || fullData.selling_timeline
+                        });
+                    }
+                } else {
+                    alert('Sorry, there was an error. Please call us directly at {% if agent and agent.phone %}{{ agent.phone }}{% else %}(555) 555-1234{% endif %}');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Get My Personalized Matches';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error. Please try again or call us directly.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get My Personalized Matches';
+            }
+        });
+
+        // Phone formatting
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let phone = e.target.value.replace(/\D/g, '');
+            if (phone.length >= 6) {
+                phone = phone.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            } else if (phone.length >= 3) {
+                phone = phone.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+            }
+            e.target.value = phone;
+        });
+    </script>
+</body>
+</html>
+

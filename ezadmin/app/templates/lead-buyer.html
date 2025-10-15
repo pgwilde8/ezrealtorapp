@@ -60,7 +60,7 @@
                 {% if agent and agent.buyer_page_subtitle %}
                     {{ agent.buyer_page_subtitle }}
                 {% else %}
-                    Let AI help you discover properties that match your lifestyle
+                    Tell us what you're looking for and we'll send you personalized property matches
                 {% endif %}
             </p>
             
@@ -94,7 +94,7 @@
                 <div class="flex items-center justify-between text-sm text-gray-500">
                     <span :class="step >= 1 ? 'text-primary font-medium' : ''">Contact Info</span>
                     <span :class="step >= 2 ? 'text-primary font-medium' : ''">Property Preferences</span>
-                    <span :class="step >= 3 ? 'text-primary font-medium' : ''">AI Analysis</span>
+                    <span :class="step >= 3 ? 'text-primary font-medium' : ''">Your Priorities</span>
                 </div>
                 <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
                     <div class="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
@@ -164,7 +164,7 @@
                         <p class="text-gray-600">Help us understand what you're looking for</p>
                     </div>
                     
-                    <!-- Budget Range with AI Insights -->
+                    <!-- Budget Range with Helpful Tips -->
                     <div class="bg-blue-50 p-6 rounded-lg">
                         <label class="block text-sm font-medium text-gray-700 mb-3">Budget Range *</label>
                         <select x-model="form.budget_range" required @change="getBudgetInsights()"
@@ -268,16 +268,16 @@
                         <button type="button" @click="nextStep()" 
                                 :disabled="!canProceedStep2()"
                                 class="btn-primary disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-lg transition duration-200">
-                            Continue to AI Analysis →
+                            Continue to Final Step →
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 3: AI Analysis & Priorities -->
+                <!-- Step 3: Your Priorities & Preferences -->
                 <div x-show="step === 3" x-transition class="space-y-6">
                     <div class="text-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">AI-Powered Matching</h2>
-                        <p class="text-gray-600">Our AI will analyze your responses to find perfect property matches</p>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Help Us Find Your Perfect Home</h2>
+                        <p class="text-gray-600">Share your priorities so we can send you the best matches</p>
                     </div>
 
                     <!-- Lifestyle Priorities -->
@@ -297,7 +297,7 @@
                         </div>
                     </div>
 
-                    <!-- AI Questions -->
+                    <!-- Tell Us More -->
                     <div class="space-y-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">What's driving your move? *</label>
@@ -345,7 +345,7 @@
                                     {% if agent and agent.submit_button_text %}
                                         {{ agent.submit_button_text }}
                                     {% else %}
-                                        Get AI-Powered Property Matches
+                                        Send Me Personalized Property Matches
                                     {% endif %}
                                 </span>
                                 <span x-show="loading" class="flex items-center">
@@ -353,7 +353,7 @@
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    AI is analyzing your preferences...
+                                    Submitting your request...
                                 </span>
                             </button>
                         </div>
@@ -363,12 +363,12 @@
 
             <!-- Success Message -->
             <div x-show="success" class="mt-6 p-4 rounded-lg" style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-color); color: var(--accent-color);">
-                <h4 class="font-semibold">Thank you for your interest!</h4>
+                <h4 class="font-semibold">✓ Request Received!</h4>
                 <p>
                     {% if agent and agent.success_message %}
                         {{ agent.success_message }}
                     {% else %}
-                        Our AI is analyzing your preferences and we'll send you personalized property matches within 24 hours.
+                        {% if agent %}{{ agent.name }}{% else %}Our team{% endif %} will review your preferences and send you personalized property matches within 24 hours. Expect a call or email soon!
                     {% endif %}
                 </p>
             </div>
@@ -531,7 +531,7 @@
                     }
                 },
                 
-                // AI Insights
+                // Helpful Tips
                 getBudgetInsights() {
                     const insights = {
                         'under_300k': '💡 Great entry-level range! Consider FHA loans for lower down payments.',
@@ -558,7 +558,7 @@
                 },
                 
                 getLocationSuggestions() {
-                    // Simulate AI location suggestions based on input
+                    // Show helpful location suggestions based on input
                     const input = this.form.preferred_areas.toLowerCase();
                     this.locationSuggestions = [];
                     
