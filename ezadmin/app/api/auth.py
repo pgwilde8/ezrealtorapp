@@ -268,35 +268,122 @@ async def send_password_reset(
 ):
     """Send password reset link"""
     
-    # Find agent by email
-    result = await db.execute(
-        select(Agent).where(Agent.email == reset_data.email.lower())
-    )
-    agent = result.scalar_one_or_none()
-    
-    if not agent:
-        # Don't reveal if email exists or not for security
+    try:
+        # Find agent by email
+        result = await db.execute(
+            select(Agent).where(Agent.email == reset_data.email.lower())
+        )
+        agent = result.scalar_one_or_none()
+        
+        if not agent:
+            # Don't reveal if email exists or not for security
+            logger.info(f"Password reset requested for non-existent email: {reset_data.email}")
+            return {"message": "If an account exists with this email, you'll receive a password reset link shortly."}
+        
+        # Create reset token
+        token_data = {
+            "sub": str(agent.id),
+            "email": agent.email,
+            "type": "password_reset"
+        }
+        
+        reset_token = create_access_token(token_data, timedelta(hours=1))
+        reset_link = f"https://login.ezrealtor.app/auth/reset/{reset_token}"
+        
+        # Use full name or email for personalization
+        agent_name = agent.name or agent.email.split('@')[0]
+        
+        logger.info(f"Sending password reset email to {agent.email}")
+        
+        # Send email
+        from app.utils.email_brevo import email_service
+        email_sent = await email_service.send_password_reset_email(
+            to_email=agent.email,
+            agent_name=agent_name,
+            reset_link=reset_link
+        )
+        
+        if email_sent:
+            logger.info(f"Password reset email successfully sent to {agent.email}")
+        else:
+            logger.error(f"Failed to send password reset email to {agent.email}")
+        
+        return {"message": "Password reset link sent to your email!"}
+        
+    except Exception as e:
+        logger.error(f"Error in password reset endpoint: {e}", exc_info=True)
+        # Still return success message for security
         return {"message": "If an account exists with this email, you'll receive a password reset link shortly."}
+
+@router.get("/reset/{token}")
+async def show_reset_password_page(request: Request, token: str):
+    """Show password reset form"""
+    from fastapi.templating import Jinja2Templates
+    templates = Jinja2Templates(directory="app/templates")
     
-    # Create reset token
-    token_data = {
-        "sub": str(agent.id),
-        "email": agent.email,
-        "type": "password_reset"
-    }
+    # Verify token is valid
+    try:
+        payload = verify_token(token)
+        if payload.get("type") != "password_reset":
+            raise HTTPException(status_code=400, detail="Invalid reset token")
+    except HTTPException:
+        # Show error page if token is invalid/expired
+        return templates.TemplateResponse("auth/reset_password.html", {
+            "request": request,
+            "error": "This reset link is invalid or has expired. Please request a new one."
+        })
     
-    reset_token = create_access_token(token_data, timedelta(hours=1))
-    reset_link = f"https://login.ezrealtor.app/auth/reset/{reset_token}"
+    return templates.TemplateResponse("auth/reset_password.html", {"request": request})
+
+class PasswordResetCompleteRequest(BaseModel):
+    token: str
+    new_password: str
+
+@router.post("/reset-password-complete")
+async def complete_password_reset(
+    reset_data: PasswordResetCompleteRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """Complete password reset by setting new password"""
     
-    # Send email
-    from app.utils.email_brevo import email_service
-    await email_service.send_password_reset_email(
-        to_email=agent.email,
-        agent_name=f"{agent.first_name} {agent.last_name}",
-        reset_link=reset_link
-    )
-    
-    return {"message": "Password reset link sent to your email!"}
+    try:
+        # Verify reset token
+        payload = verify_token(reset_data.token)
+        
+        if payload.get("type") != "password_reset":
+            raise HTTPException(status_code=400, detail="Invalid reset token")
+        
+        agent_id = payload.get("sub")
+        if not agent_id:
+            raise HTTPException(status_code=400, detail="Invalid token data")
+        
+        # Get agent from database
+        result = await db.execute(
+            select(Agent).where(Agent.id == agent_id)
+        )
+        agent = result.scalar_one_or_none()
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Hash and set new password
+        hashed_password = hash_password(reset_data.new_password)
+        agent.password_hash = hashed_password
+        await db.commit()
+        
+        logger.info(f"Password successfully reset for agent: {agent.email}")
+        
+        return {"message": "Password reset successful"}
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=400, detail="Reset link has expired. Please request a new one.")
+    except jwt.JWTError:
+        raise HTTPException(status_code=400, detail="Invalid reset link")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error completing password reset: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to reset password")
 
 @router.get("/verify")
 async def verify_current_user(
