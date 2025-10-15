@@ -176,6 +176,66 @@
             </div>
         </div>
 
+        <!-- Custom Domain Section -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">🌍 Custom Domain</h3>
+                <p class="text-sm text-gray-600">Use your own domain name instead of {{ agent.slug if agent else 'yourname' }}.ezrealtor.app</p>
+            </div>
+
+            {% if agent and agent.plan_tier in ['growth', 'scale', 'pro'] %}
+            <!-- Has access to custom domains -->
+            <div id="customDomainSection">
+                <!-- No domain configured -->
+                <div id="noDomain" style="display: block;">
+                    <div style="background: #f0f9ff; border: 2px dashed #3b82f6; border-radius: 12px; padding: 25px; text-align: center;">
+                        <p style="color: #1e40af; font-size: 15px; margin-bottom: 20px;">
+                            ✨ Use your own domain to strengthen your brand!<br>
+                            <span style="font-size: 13px; color: #6b7280;">Example: www.johnsmithrealty.com instead of {{ agent.slug if agent else 'yourname' }}.ezrealtor.app</span>
+                        </p>
+                        <button onclick="document.getElementById('addDomainModal').style.display='flex'" class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 font-semibold">
+                            <i class="fas fa-plus-circle mr-2"></i>
+                            Add Custom Domain
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Domain configured (hidden by default) -->
+                <div id="hasDomain" style="display: none;">
+                    <div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 12px; padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <div style="font-size: 18px; font-weight: 600; color: #059669;" id="domainName">
+                                    www.yourdom domain.com
+                                </div>
+                                <div style="font-size: 13px; color: #6b7280; margin-top: 3px;">
+                                    Status: <span id="domainStatus" style="font-weight: 600; color: #10b981;">✅ Active</span>
+                                </div>
+                            </div>
+                            <button onclick="removeDomain()" class="bg-red-100 text-red-700 px-4 py-2 rounded-md hover:bg-red-200 text-sm font-semibold">
+                                Remove
+                            </button>
+                        </div>
+                        <p style="font-size: 14px; color: #047857;">
+                            Your custom domain is active and serving your pages!
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Needs to upgrade -->
+            <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 12px; padding: 25px; text-align: center; color: white;">
+                <h4 style="font-size: 20px; font-weight: 700; margin-bottom: 10px;">💎 Premium Feature</h4>
+                <p style="font-size: 15px; margin-bottom: 20px; opacity: 0.95;">
+                    Custom domains are available on Growth plans and higher
+                </p>
+                <a href="/billing" class="bg-white text-orange-700 px-6 py-3 rounded-md hover:bg-orange-50 inline-block font-semibold" style="text-decoration: none;">
+                    Upgrade to Growth - $147/mo
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
         <!-- Send Property Alert Section -->
         <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg shadow-lg p-6 mb-6">
             <div class="flex flex-wrap items-center justify-between gap-4">
@@ -625,6 +685,70 @@
         }
     </script>
 
+    <!-- Add Custom Domain Modal -->
+    <div id="addDomainModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: white; border-radius: 12px; max-width: 600px; width: 100%; padding: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-size: 24px; font-weight: 700; color: #1a1a1a;">🌍 Add Custom Domain</h3>
+                <button onclick="document.getElementById('addDomainModal').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
+            </div>
+
+            <form id="domainForm" onsubmit="addCustomDomain(event)">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #374151;">Your Domain Name</label>
+                    <input type="text" id="customDomainInput" required placeholder="www.johnsmithrealty.com" style="width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 16px;">
+                    <p style="font-size: 13px; color: #6b7280; margin-top: 6px;">Enter the domain you own (e.g., yourname.com or www.yourname.com)</p>
+                </div>
+
+                <div id="dnsInstructions" style="display: none; background: #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: #92400e; margin-bottom: 15px;">📋 DNS Setup Instructions</h4>
+                    <p style="font-size: 14px; color: #92400e; margin-bottom: 15px;">Add these 2 records to your domain's DNS settings (GoDaddy, Namecheap, etc.):</p>
+                    
+                    <div style="background: white; padding: 12px; border-radius: 6px; margin-bottom: 10px; font-family: monospace; font-size: 13px;">
+                        <strong>Record 1:</strong> Point domain to EZRealtor<br>
+                        Type: CNAME<br>
+                        Name: <span id="dns1Name">@</span><br>
+                        Value: ezrealtor.app<br>
+                        TTL: Auto
+                    </div>
+                    
+                    <div style="background: white; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 13px;">
+                        <strong>Record 2:</strong> Enable auto SSL renewal<br>
+                        Type: CNAME<br>
+                        Name: _acme-challenge<br>
+                        Value: <span id="dns2Value">Loading...</span><br>
+                        TTL: Auto
+                    </div>
+
+                    <p style="font-size: 13px; color: #92400e; margin-top: 15px;">
+                        ⏱️ DNS changes can take 5-30 minutes to propagate.
+                    </p>
+                </div>
+
+                <div id="verificationStatus" style="display: none; background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="font-size: 14px; color: #1e40af; margin-bottom: 10px;">
+                        <strong>🔄 Verifying your domain...</strong>
+                    </p>
+                    <p style="font-size: 13px; color: #1e3a8a;">
+                        We're checking if the DNS records are configured correctly. This usually takes 5-30 minutes.
+                    </p>
+                    <button type="button" onclick="checkDomainStatus()" style="margin-top: 10px; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;">
+                        Check Status Now
+                    </button>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="document.getElementById('addDomainModal').style.display='none'" style="flex: 1; padding: 14px; background: #e5e7eb; color: #374151; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                    <button type="submit" id="addDomainBtn" style="flex: 2; padding: 14px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        Add Domain
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Property Alert Modal -->
     <div id="alertModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
         <div style="background: white; border-radius: 12px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 30px;">
@@ -633,85 +757,117 @@
                 <button onclick="document.getElementById('alertModal').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">×</button>
             </div>
 
-            <form id="alertForm" style="display: flex; flex-direction: column; gap: 20px;">
-                <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Property Address *</label>
-                    <input type="text" id="alertAddress" required placeholder="123 Oak Street, City, State" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <form id="alertForm">
+                <!-- Step 1: Property Details -->
+                <div id="alertStep1" style="display: flex; flex-direction: column; gap: 20px;">
                     <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Price *</label>
-                        <input type="number" id="alertPrice" required placeholder="495000" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Property Address *</label>
+                        <input type="text" id="alertAddress" required placeholder="123 Oak Street, City, State" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
                     </div>
-                    <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Square Feet</label>
-                        <input type="number" id="alertSqft" placeholder="2400" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
-                    </div>
-                </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Bedrooms *</label>
-                        <select id="alertBedrooms" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
-                            <option value="">Select</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5+</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Bathrooms *</label>
-                        <select id="alertBathrooms" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
-                            <option value="">Select</option>
-                            <option value="1">1</option>
-                            <option value="1.5">1.5</option>
-                            <option value="2">2</option>
-                            <option value="2.5">2.5</option>
-                            <option value="3">3+</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Quick Description (for SMS/Email) *</label>
-                    <textarea id="alertDescription" required rows="3" placeholder="Move-in ready! Updated kitchen, hardwood floors, great schools. Showing this weekend." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; resize: vertical;"></textarea>
-                </div>
-
-                <div>
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">MLS Link or Photos (Optional)</label>
-                    <input type="url" id="alertLink" placeholder="https://..." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
-                </div>
-
-                <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
-                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                        <input type="checkbox" id="isHotProperty" style="width: 20px; height: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div>
-                            <strong style="color: #92400e;">🔥 Mark as "Hot Property"</strong>
-                            <p style="font-size: 13px; color: #92400e; margin: 0;">Send SMS to VIP subscribers immediately (email subscribers get it in 6 hours)</p>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Price *</label>
+                            <input type="number" id="alertPrice" required placeholder="495000" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
                         </div>
-                    </label>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Square Feet</label>
+                            <input type="number" id="alertSqft" placeholder="2400" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Bedrooms *</label>
+                            <select id="alertBedrooms" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
+                                <option value="">Select</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5+</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Bathrooms *</label>
+                            <select id="alertBathrooms" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
+                                <option value="">Select</option>
+                                <option value="1">1</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2">2</option>
+                                <option value="2.5">2.5</option>
+                                <option value="3">3+</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">Quick Description (for SMS/Email) *</label>
+                        <textarea id="alertDescription" required rows="3" placeholder="Move-in ready! Updated kitchen, hardwood floors, great schools. Showing this weekend." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; resize: vertical;"></textarea>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #374151;">MLS Link (Optional)</label>
+                        <input type="url" id="alertLink" placeholder="https://..." style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px;">
+                    </div>
+
+                    <div style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="isHotProperty" style="width: 20px; height: 20px;">
+                            <div>
+                                <strong style="color: #92400e;">🔥 Mark as "Hot Property"</strong>
+                                <p style="font-size: 13px; color: #92400e; margin: 0;">Send SMS to VIP subscribers immediately (email subscribers get it in 6 hours)</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button type="button" onclick="goToStep2()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">
+                        Next: Add Photos →
+                    </button>
                 </div>
 
-                <div id="matchPreview" style="display: none; background: #dbeafe; padding: 15px; border-radius: 8px;">
-                    <h4 style="font-size: 14px; font-weight: 600; color: #1e40af; margin-bottom: 10px;">📊 Matching Subscribers:</h4>
-                    <p style="font-size: 14px; color: #1e3a8a; margin: 5px 0;">
-                        <strong id="smsCount">0</strong> VIP SMS subscribers
-                    </p>
-                    <p style="font-size: 14px; color: #1e3a8a; margin: 5px 0;">
-                        <strong id="emailCount">0</strong> Email subscribers
-                    </p>
-                </div>
+                <!-- Step 2: Photo Upload -->
+                <div id="alertStep2" style="display: none; flex-direction: column; gap: 20px;">
+                    <div style="text-align: center; padding: 10px 0;">
+                        <span style="background: #e0e7ff; color: #4338ca; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">Step 2 of 2</span>
+                    </div>
 
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" onclick="previewMatches()" style="flex: 1; padding: 14px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        Preview Matches
-                    </button>
-                    <button type="submit" id="sendAlertBtn" style="flex: 2; padding: 14px; background: linear-gradient(135deg, #f97316, #dc2626); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        📨 Send Alert
-                    </button>
+                    <div>
+                        <label style="display: block; font-weight: 600; margin-bottom: 10px; color: #374151; font-size: 16px;">📸 Upload Property Photos</label>
+                        <p style="font-size: 14px; color: #6b7280; margin-bottom: 15px;">Add 1-5 photos to make your alert stand out (optional but recommended)</p>
+                        
+                        <div id="photoUploadArea" style="border: 2px dashed #d1d5db; border-radius: 12px; padding: 30px; text-align: center; background: #f9fafb; cursor: pointer; transition: all 0.3s;" onclick="document.getElementById('photoInput').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #9ca3af; margin-bottom: 10px;"></i>
+                            <p style="color: #6b7280; font-size: 15px; font-weight: 600; margin-bottom: 5px;">Click to upload photos</p>
+                            <p style="color: #9ca3af; font-size: 13px;">or drag and drop</p>
+                            <p style="color: #9ca3af; font-size: 12px; margin-top: 8px;">JPG, PNG up to 5MB each • Max 5 photos</p>
+                        </div>
+                        <input type="file" id="photoInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoSelect(event)">
+                    </div>
+
+                    <div id="photoPreview" style="display: none; gap: 10px; flex-wrap: wrap;"></div>
+
+                    <div id="matchPreview" style="background: #dbeafe; padding: 15px; border-radius: 8px;">
+                        <h4 style="font-size: 14px; font-weight: 600; color: #1e40af; margin-bottom: 10px;">📊 Who Will Receive This Alert:</h4>
+                        <p style="font-size: 14px; color: #1e3a8a; margin: 5px 0;">
+                            <strong id="smsCount">0</strong> VIP SMS subscribers (instant text)
+                        </p>
+                        <p style="font-size: 14px; color: #1e3a8a; margin: 5px 0;">
+                            <strong id="emailCount">0</strong> Email subscribers
+                        </p>
+                        <button type="button" onclick="previewMatches()" style="margin-top: 10px; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer;">
+                            🔄 Refresh Match Count
+                        </button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" onclick="goToStep1()" style="flex: 1; padding: 14px; background: #6b7280; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                            ← Back
+                        </button>
+                        <button type="submit" id="sendAlertBtn" style="flex: 2; padding: 14px; background: linear-gradient(135deg, #f97316, #dc2626); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">
+                            📨 Send Alert to Subscribers
+                        </button>
+                    </div>
                 </div>
             </form>
 
@@ -727,13 +883,108 @@
     </div>
 
     <script>
+        let uploadedPhotos = [];
+        
+        function goToStep2() {
+            // Validate Step 1 first
+            if (!document.getElementById('alertAddress').value || 
+                !document.getElementById('alertPrice').value ||
+                !document.getElementById('alertBedrooms').value ||
+                !document.getElementById('alertBathrooms').value ||
+                !document.getElementById('alertDescription').value) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            document.getElementById('alertStep1').style.display = 'none';
+            document.getElementById('alertStep2').style.display = 'flex';
+            
+            // Auto-preview matches when going to step 2
+            previewMatches();
+        }
+        
+        function goToStep1() {
+            document.getElementById('alertStep2').style.display = 'none';
+            document.getElementById('alertStep1').style.display = 'flex';
+        }
+        
+        function handlePhotoSelect(event) {
+            const files = Array.from(event.target.files);
+            
+            // Limit to 5 photos
+            if (uploadedPhotos.length + files.length > 5) {
+                alert('Maximum 5 photos allowed');
+                return;
+            }
+            
+            // Validate file size (5MB max each)
+            for (let file of files) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(file.name + ' is too large. Maximum 5MB per photo.');
+                    return;
+                }
+            }
+            
+            // Add to uploaded photos
+            uploadedPhotos = uploadedPhotos.concat(files);
+            
+            // Show preview
+            displayPhotoPreview();
+        }
+        
+        function displayPhotoPreview() {
+            const previewContainer = document.getElementById('photoPreview');
+            
+            if (uploadedPhotos.length === 0) {
+                previewContainer.style.display = 'none';
+                return;
+            }
+            
+            previewContainer.style.display = 'flex';
+            previewContainer.innerHTML = '';
+            
+            uploadedPhotos.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const photoCard = document.createElement('div');
+                    photoCard.style.cssText = 'position: relative; width: 100px; height: 100px; border-radius: 8px; overflow: hidden; border: 2px solid #e5e7eb;';
+                    photoCard.innerHTML = `
+                        <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <button onclick="removePhoto(${index})" style="position: absolute; top: 5px; right: 5px; background: rgba(220, 38, 38, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 14px; line-height: 1;">×</button>
+                    `;
+                    previewContainer.appendChild(photoCard);
+                };
+                reader.readAsDataURL(file);
+            });
+            
+            // Update upload area text
+            document.getElementById('photoUploadArea').innerHTML = `
+                <i class="fas fa-check-circle" style="font-size: 36px; color: #10b981; margin-bottom: 10px;"></i>
+                <p style="color: #059669; font-size: 15px; font-weight: 600;">${uploadedPhotos.length} photo${uploadedPhotos.length > 1 ? 's' : ''} selected</p>
+                <p style="color: #6b7280; font-size: 13px; margin-top: 5px;">Click to add more (max 5 total)</p>
+            `;
+        }
+        
+        function removePhoto(index) {
+            uploadedPhotos.splice(index, 1);
+            displayPhotoPreview();
+            
+            if (uploadedPhotos.length === 0) {
+                document.getElementById('photoUploadArea').innerHTML = `
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #9ca3af; margin-bottom: 10px;"></i>
+                    <p style="color: #6b7280; font-size: 15px; font-weight: 600; margin-bottom: 5px;">Click to upload photos</p>
+                    <p style="color: #9ca3af; font-size: 13px;">or drag and drop</p>
+                    <p style="color: #9ca3af; font-size: 12px; margin-top: 8px;">JPG, PNG up to 5MB each • Max 5 photos</p>
+                `;
+            }
+        }
+        
         async function previewMatches() {
             const price = parseInt(document.getElementById('alertPrice').value) || 0;
             const bedrooms = document.getElementById('alertBedrooms').value;
             
             // TODO: Call API to get actual match count
             // For now, show dummy data
-            document.getElementById('matchPreview').style.display = 'block';
             document.getElementById('smsCount').textContent = '8';
             document.getElementById('emailCount').textContent = '23';
         }
@@ -743,7 +994,7 @@
             
             const sendBtn = document.getElementById('sendAlertBtn');
             sendBtn.disabled = true;
-            sendBtn.textContent = 'Sending...';
+            sendBtn.textContent = 'Uploading photos...';
             
             const alertData = {
                 address: document.getElementById('alertAddress').value,
@@ -753,10 +1004,38 @@
                 bathrooms: parseFloat(document.getElementById('alertBathrooms').value),
                 description: document.getElementById('alertDescription').value,
                 link: document.getElementById('alertLink').value,
-                is_hot_property: document.getElementById('isHotProperty').checked
+                is_hot_property: document.getElementById('isHotProperty').checked,
+                photo_urls: []
             };
             
             try {
+                // Upload photos first if any
+                if (uploadedPhotos.length > 0) {
+                    for (let i = 0; i < uploadedPhotos.length; i++) {
+                        sendBtn.textContent = `Uploading photo ${i+1}/${uploadedPhotos.length}...`;
+                        
+                        const formData = new FormData();
+                        formData.append('file', uploadedPhotos[i]);
+                        formData.append('folder', 'property-alerts');
+                        
+                        const uploadResponse = await fetch('/api/v1/upload/image', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                            },
+                            body: formData
+                        });
+                        
+                        if (uploadResponse.ok) {
+                            const uploadResult = await uploadResponse.json();
+                            alertData.photo_urls.push(uploadResult.url);
+                        }
+                    }
+                }
+                
+                // Send alert with photos
+                sendBtn.textContent = 'Sending alert...';
+                
                 const response = await fetch('/api/v1/property-alerts/', {
                     method: 'POST',
                     headers: {
@@ -768,31 +1047,168 @@
                 
                 if (response.ok) {
                     const result = await response.json();
-                    document.getElementById('alertForm').style.display = 'none';
+                    document.getElementById('alertStep1').style.display = 'none';
+                    document.getElementById('alertStep2').style.display = 'none';
                     document.getElementById('alertSuccess').style.display = 'block';
                     document.getElementById('totalSent').textContent = result.total_sent || 0;
                 } else {
                     alert('Error sending alert. Please try again.');
                     sendBtn.disabled = false;
-                    sendBtn.textContent = '📨 Send Alert';
+                    sendBtn.textContent = '📨 Send Alert to Subscribers';
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('Network error. Please try again.');
                 sendBtn.disabled = false;
-                sendBtn.textContent = '📨 Send Alert';
+                sendBtn.textContent = '📨 Send Alert to Subscribers';
             }
         });
 
         function resetAlertForm() {
             document.getElementById('alertForm').reset();
-            document.getElementById('alertForm').style.display = 'flex';
+            document.getElementById('alertStep1').style.display = 'flex';
+            document.getElementById('alertStep2').style.display = 'none';
             document.getElementById('alertSuccess').style.display = 'none';
-            document.getElementById('matchPreview').style.display = 'none';
+            document.getElementById('photoPreview').style.display = 'none';
             document.getElementById('alertModal').style.display = 'none';
             document.getElementById('sendAlertBtn').disabled = false;
-            document.getElementById('sendAlertBtn').textContent = '📨 Send Alert';
+            document.getElementById('sendAlertBtn').textContent = '📨 Send Alert to Subscribers';
+            
+            // Reset photos
+            uploadedPhotos = [];
+            document.getElementById('photoInput').value = '';
+            document.getElementById('photoUploadArea').innerHTML = `
+                <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #9ca3af; margin-bottom: 10px;"></i>
+                <p style="color: #6b7280; font-size: 15px; font-weight: 600; margin-bottom: 5px;">Click to upload photos</p>
+                <p style="color: #9ca3af; font-size: 13px;">or drag and drop</p>
+                <p style="color: #9ca3af; font-size: 12px; margin-top: 8px;">JPG, PNG up to 5MB each • Max 5 photos</p>
+            `;
         }
+
+        // Custom Domain Functions
+        async function addCustomDomain(event) {
+            event.preventDefault();
+            
+            const domainInput = document.getElementById('customDomainInput').value.trim().toLowerCase();
+            const addBtn = document.getElementById('addDomainBtn');
+            
+            addBtn.disabled = true;
+            addBtn.textContent = 'Adding domain...';
+            
+            try {
+                const response = await fetch('/api/v1/domains/custom', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    },
+                    body: JSON.stringify({
+                        domain_name: domainInput
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Show DNS instructions
+                    document.getElementById('dns1Name').textContent = result.dns_records[0].name;
+                    document.getElementById('dns2Value').textContent = result.dns_records[1].value;
+                    document.getElementById('dnsInstructions').style.display = 'block';
+                    document.getElementById('verificationStatus').style.display = 'block';
+                    addBtn.textContent = 'Domain Added - Awaiting DNS';
+                    addBtn.disabled = true;
+                    
+                    // Start polling for verification
+                    setTimeout(() => checkDomainStatus(), 30000); // Check in 30 seconds
+                } else {
+                    alert(result.detail || 'Error adding domain. Please try again.');
+                    addBtn.disabled = false;
+                    addBtn.textContent = 'Add Domain';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+                addBtn.disabled = false;
+                addBtn.textContent = 'Add Domain';
+            }
+        }
+
+        async function checkDomainStatus() {
+            try {
+                const response = await fetch('/api/v1/domains/custom/status', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.is_verified) {
+                    // Domain verified!
+                    document.getElementById('addDomainModal').style.display = 'none';
+                    document.getElementById('noDomain').style.display = 'none';
+                    document.getElementById('hasDomain').style.display = 'block';
+                    document.getElementById('domainName').textContent = result.domain_name;
+                    document.getElementById('domainStatus').innerHTML = '✅ Active';
+                    
+                    alert('🎉 Your custom domain is now active!');
+                    location.reload(); // Refresh to update UI
+                } else {
+                    alert('Domain not verified yet. DNS records may need more time to propagate (5-30 minutes). Click "Check Status Now" again in a few minutes.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error checking status. Please try again.');
+            }
+        }
+
+        async function removeDomain() {
+            if (!confirm('Are you sure you want to remove your custom domain? Your subdomain will still work.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/domains/custom', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    }
+                });
+                
+                if (response.ok) {
+                    document.getElementById('hasDomain').style.display = 'none';
+                    document.getElementById('noDomain').style.display = 'block';
+                    alert('Custom domain removed successfully.');
+                } else {
+                    alert('Error removing domain. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+            }
+        }
+
+        // Check if agent has custom domain on page load
+        window.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('/api/v1/domains/custom/status', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.has_domain && result.is_verified) {
+                    document.getElementById('noDomain').style.display = 'none';
+                    document.getElementById('hasDomain').style.display = 'block';
+                    document.getElementById('domainName').textContent = result.domain_name;
+                }
+            } catch (error) {
+                // No domain configured or error - show default state
+                console.log('No custom domain configured');
+            }
+        });
     </script>
 </body>
 </html>
