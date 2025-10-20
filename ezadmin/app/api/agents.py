@@ -5,16 +5,20 @@ Handles agent registration, profile management, and authentication
 
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func, and_
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
+import logging
 
 from app.utils.database import get_db
 from app.models.agent import Agent, PlanTier, AgentStatus
+from app.models.lead import Lead
 from app.middleware.tenant_resolver import get_current_agent_id
 from app.middleware.auth import get_current_agent
 from app.services.spaces_service import spaces_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -40,6 +44,16 @@ class AgentUpdateRequest(BaseModel):
     timezone: Optional[str] = None
     email_notifications: Optional[bool] = None
     sms_notifications: Optional[bool] = None
+
+class AgentStatsResponse(BaseModel):
+    totalLeads: int
+    newLeadsToday: int
+    hotLeads: int
+    hotLeadsPercentage: int
+    aiAnalyzed: int
+    aiSuccessRate: int
+    conversionRate: int
+    conversionImprovement: int
 
 class AgentResponse(BaseModel):
     id: int
@@ -184,31 +198,6 @@ async def check_slug_availability(
         return {"available": False, "reason": "Subdomain already taken"}
     
     return {"available": True}
-
-@router.get("/stats")
-async def get_agent_stats(
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """Get basic stats for current agent"""
-    
-    agent_id = await get_current_agent_id(request)
-    if not agent_id:
-        raise HTTPException(status_code=401, detail="Agent context required")
-    
-    # TODO: Implement stats queries
-    # - Total leads this month
-    # - Lead conversion rate
-    # - Usage metrics
-    # - Plan limits
-    
-    return {
-        "leads_this_month": 0,
-        "total_leads": 0,
-        "conversion_rate": 0.0,
-        "plan_tier": "trial"
-    }
-
 
 @router.post("/me/upload-headshot")
 async def upload_headshot(
@@ -396,3 +385,82 @@ async def delete_agent_photo(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete photo: {str(e)}")
+
+
+@router.get("/stats", response_model=AgentStatsResponse)
+async def get_agent_stats(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+):
+    """Get statistics for the current agent's dashboard"""
+    
+    # Get agent from tenant slug (subdomain)
+    tenant_slug = getattr(request.state, 'tenant_slug', None)
+    host = request.headers.get("host", "")
+    
+    logger.info(f"[STATS API] Host: {host}, tenant_slug from state: {tenant_slug}")
+    print(f"[STATS API DEBUG] Host: {host}, tenant_slug: {tenant_slug}", flush=True)
+    
+    if not tenant_slug:
+        logger.error(f"[STATS API] No tenant_slug found! Host was: {host}")
+        print(f"[STATS API DEBUG] No tenant found! Host: {host}", flush=True)
+        raise HTTPException(status_code=401, detail=f"Agent context required. Host: {host}")
+    
+    # Find agent by slug
+    agent_result = await db.execute(select(Agent).where(Agent.slug == tenant_slug))
+    agent = agent_result.scalar_one_or_none()
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Filter stats by this agent only
+    agent_filter = Lead.agent_id == agent.id
+    
+    today = datetime.now().date()
+    
+    # Total leads
+    total_leads_result = await db.execute(
+        select(func.count(Lead.id)).where(agent_filter)
+    )
+    total_leads = total_leads_result.scalar() or 0
+    
+    # New leads today
+    today_leads_result = await db.execute(
+        select(func.count(Lead.id)).where(
+            and_(agent_filter, func.date(Lead.created_at) == today)
+        )
+    )
+    new_leads_today = today_leads_result.scalar() or 0
+    
+    # Hot leads (high AI score)
+    hot_leads_result = await db.execute(
+        select(func.count(Lead.id)).where(
+            and_(agent_filter, Lead.ai_score >= 80)
+        )
+    )
+    hot_leads = hot_leads_result.scalar() or 0
+    hot_leads_percentage = int((hot_leads / total_leads * 100)) if total_leads > 0 else 0
+    
+    # AI analyzed leads
+    ai_analyzed_result = await db.execute(
+        select(func.count(Lead.id)).where(
+            and_(agent_filter, Lead.ai_summary.isnot(None))
+        )
+    )
+    ai_analyzed = ai_analyzed_result.scalar() or 0
+    ai_success_rate = int((ai_analyzed / total_leads * 100)) if total_leads > 0 else 0
+    
+    # Mock conversion data (in production, track actual conversions)
+    conversion_rate = 24
+    conversion_improvement = 12
+    
+    return AgentStatsResponse(
+        totalLeads=total_leads,
+        newLeadsToday=new_leads_today,
+        hotLeads=hot_leads,
+        hotLeadsPercentage=hot_leads_percentage,
+        aiAnalyzed=ai_analyzed,
+        aiSuccessRate=ai_success_rate,
+        conversionRate=conversion_rate,
+        conversionImprovement=conversion_improvement
+    )

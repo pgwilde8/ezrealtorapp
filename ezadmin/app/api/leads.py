@@ -10,6 +10,7 @@ from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import json
+import logging
 
 from app.utils.database import get_db
 from app.models.lead import Lead, LeadSource, LeadStatus
@@ -17,6 +18,8 @@ from app.models.agent import Agent
 from app.models.provider_credentials import ProviderCredential
 from app.middleware.tenant_resolver import get_current_agent_id, require_tenant
 from app.services.ai_lead_processor import AILeadProcessor
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -70,16 +73,6 @@ class LeadResponse(BaseModel):
     
     class Config:
         from_attributes = True
-
-class AgentStatsResponse(BaseModel):
-    totalLeads: int
-    newLeadsToday: int
-    hotLeads: int
-    hotLeadsPercentage: int
-    aiAnalyzed: int
-    aiSuccessRate: int
-    conversionRate: int
-    conversionImprovement: int
 
 @router.post("/", response_model=dict)
 async def create_lead(
@@ -187,14 +180,21 @@ async def list_leads(
 ):
     """List leads for current agent"""
     
-    agent_id = await get_current_agent_id(request)
-    if agent_id:
-        agent_filter = Lead.agent_id == agent_id
-    else:
-        # For now, show all leads if no agent context (development mode)
-        agent_filter = True
+    # Get agent from tenant slug (subdomain)
+    tenant_slug = getattr(request.state, 'tenant_slug', None)
     
-    query = select(Lead).where(agent_filter)
+    if not tenant_slug:
+        raise HTTPException(status_code=401, detail="Agent context required")
+    
+    # Find agent by slug
+    agent_result = await db.execute(select(Agent).where(Agent.slug == tenant_slug))
+    agent = agent_result.scalar_one_or_none()
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Filter leads by this agent only
+    query = select(Lead).where(Lead.agent_id == agent.id)
     
     if status:
         query = query.where(Lead.status == status.value)
@@ -276,69 +276,6 @@ async def update_lead_status(
     await db.commit()
     
     return {"success": True, "status": status.value}
-
-@router.get("/agents/stats", response_model=AgentStatsResponse)
-async def get_agent_stats(
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
-    """Get statistics for the current agent's dashboard"""
-    
-    agent_id = await get_current_agent_id(request)
-    if not agent_id:
-        # For now, get global stats if no agent context
-        agent_filter = True
-    else:
-        agent_filter = Lead.agent_id == agent_id
-    
-    today = datetime.now().date()
-    
-    # Total leads
-    total_leads_result = await db.execute(
-        select(func.count(Lead.id)).where(agent_filter)
-    )
-    total_leads = total_leads_result.scalar() or 0
-    
-    # New leads today
-    today_leads_result = await db.execute(
-        select(func.count(Lead.id)).where(
-            and_(agent_filter, func.date(Lead.created_at) == today)
-        )
-    )
-    new_leads_today = today_leads_result.scalar() or 0
-    
-    # Hot leads (high AI score)
-    hot_leads_result = await db.execute(
-        select(func.count(Lead.id)).where(
-            and_(agent_filter, Lead.ai_score >= 80)
-        )
-    )
-    hot_leads = hot_leads_result.scalar() or 0
-    hot_leads_percentage = int((hot_leads / total_leads * 100)) if total_leads > 0 else 0
-    
-    # AI analyzed leads
-    ai_analyzed_result = await db.execute(
-        select(func.count(Lead.id)).where(
-            and_(agent_filter, Lead.ai_summary.isnot(None))
-        )
-    )
-    ai_analyzed = ai_analyzed_result.scalar() or 0
-    ai_success_rate = int((ai_analyzed / total_leads * 100)) if total_leads > 0 else 0
-    
-    # Mock conversion data (in production, track actual conversions)
-    conversion_rate = 24
-    conversion_improvement = 12
-    
-    return AgentStatsResponse(
-        totalLeads=total_leads,
-        newLeadsToday=new_leads_today,
-        hotLeads=hot_leads,
-        hotLeadsPercentage=hot_leads_percentage,
-        aiAnalyzed=ai_analyzed,
-        aiSuccessRate=ai_success_rate,
-        conversionRate=conversion_rate,
-        conversionImprovement=conversion_improvement
-    )
 
 async def process_lead_with_ai(lead_id: str, agent_id: str, lead_data: Dict[str, Any]):
     """Background task to process lead with AI and send notifications"""
