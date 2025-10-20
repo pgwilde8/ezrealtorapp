@@ -86,11 +86,13 @@ async def get_agent_customization(
 ):
     """Get agent's current customization settings"""
     
-    agent_id = await get_current_agent_id(request)
-    if not agent_id:
+    # Try to get agent from tenant slug (subdomain)
+    tenant_slug = getattr(request.state, 'tenant_slug', None)
+    
+    if not tenant_slug:
         raise HTTPException(status_code=401, detail="Agent context required")
     
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
+    result = await db.execute(select(Agent).where(Agent.slug == tenant_slug))
     agent = result.scalar_one_or_none()
     
     if not agent:
@@ -106,11 +108,13 @@ async def update_agent_customization(
 ):
     """Update agent's customization settings"""
     
-    agent_id = await get_current_agent_id(request)
-    if not agent_id:
+    # Try to get agent from tenant slug (subdomain)
+    tenant_slug = getattr(request.state, 'tenant_slug', None)
+    
+    if not tenant_slug:
         raise HTTPException(status_code=401, detail="Agent context required")
     
-    result = await db.execute(select(Agent).where(Agent.id == agent_id))
+    result = await db.execute(select(Agent).where(Agent.slug == tenant_slug))
     agent = result.scalar_one_or_none()
     
     if not agent:
@@ -118,12 +122,19 @@ async def update_agent_customization(
     
     # Update fields
     update_data = customization.dict(exclude_unset=True)
+    print(f"[CUSTOMIZATION] Updating agent {agent.slug} with data: {update_data}")
+    
     for field, value in update_data.items():
         if hasattr(agent, field):
             setattr(agent, field, value)
+            print(f"[CUSTOMIZATION] Set {field} = {value}")
+        else:
+            print(f"[CUSTOMIZATION] WARNING: Agent model doesn't have field '{field}'")
     
     await db.commit()
     await db.refresh(agent)
+    
+    print(f"[CUSTOMIZATION] Successfully updated agent {agent.slug}")
     
     return agent
 

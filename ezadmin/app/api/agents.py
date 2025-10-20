@@ -3,7 +3,7 @@ Agents API endpoints
 Handles agent registration, profile management, and authentication
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, EmailStr
@@ -13,6 +13,8 @@ from datetime import datetime
 from app.utils.database import get_db
 from app.models.agent import Agent, PlanTier, AgentStatus
 from app.middleware.tenant_resolver import get_current_agent_id
+from app.middleware.auth import get_current_agent
+from app.services.spaces_service import spaces_service
 
 router = APIRouter()
 
@@ -206,3 +208,191 @@ async def get_agent_stats(
         "conversion_rate": 0.0,
         "plan_tier": "trial"
     }
+
+
+@router.post("/me/upload-headshot")
+async def upload_headshot(
+    photo: UploadFile = File(...),
+    agent: Agent = Depends(get_current_agent),
+    db: AsyncSession = Depends(get_db)
+):
+    """Upload agent profile headshot photo"""
+    
+    # Validate file type
+    if not photo.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Read file data
+    file_data = await photo.read()
+    
+    # Validate file size (5MB max for profile photos)
+    if len(file_data) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image must be less than 5MB")
+    
+    try:
+        # Delete old headshot if exists
+        if agent.headshot_url:
+            spaces_service.delete_image(agent.headshot_url)
+        
+        # Upload new headshot (square format optimized)
+        folder = f"agents/{agent.slug}"
+        filename = "profile.jpg"
+        
+        full_url, thumbnail_url, metadata = spaces_service.upload_image(
+            file_data=file_data,
+            folder=folder,
+            filename=filename,
+            content_type=photo.content_type,
+            max_size=(800, 800)  # Square profile photo
+        )
+        
+        # Update agent record
+        agent.headshot_url = full_url
+        await db.commit()
+        
+        return {
+            "success": True,
+            "headshot_url": full_url,
+            "thumbnail_url": thumbnail_url,
+            "message": "Profile photo updated successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload photo: {str(e)}")
+
+
+@router.post("/me/upload-secondary-photo")
+async def upload_secondary_photo(
+    photo: UploadFile = File(...),
+    agent: Agent = Depends(get_current_agent),
+    db: AsyncSession = Depends(get_db)
+):
+    """Upload secondary photo for About section"""
+    
+    # Validate file type
+    if not photo.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Read file data
+    file_data = await photo.read()
+    
+    # Validate file size
+    if len(file_data) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image must be less than 5MB")
+    
+    try:
+        # Delete old photo if exists
+        if agent.secondary_photo_url:
+            spaces_service.delete_image(agent.secondary_photo_url)
+        
+        # Upload new photo
+        folder = f"agents/{agent.slug}"
+        filename = "secondary.jpg"
+        
+        full_url, thumbnail_url, metadata = spaces_service.upload_image(
+            file_data=file_data,
+            folder=folder,
+            filename=filename,
+            content_type=photo.content_type,
+            max_size=(1200, 900)  # Landscape format
+        )
+        
+        # Update agent record
+        agent.secondary_photo_url = full_url
+        await db.commit()
+        
+        return {
+            "success": True,
+            "secondary_photo_url": full_url,
+            "thumbnail_url": thumbnail_url,
+            "message": "Secondary photo updated successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload photo: {str(e)}")
+
+
+@router.post("/me/upload-logo")
+async def upload_logo(
+    photo: UploadFile = File(...),
+    agent: Agent = Depends(get_current_agent),
+    db: AsyncSession = Depends(get_db)
+):
+    """Upload agency logo"""
+    
+    # Validate file type
+    if not photo.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    
+    # Read file data
+    file_data = await photo.read()
+    
+    # Validate file size
+    if len(file_data) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Logo must be less than 2MB")
+    
+    try:
+        # Delete old logo if exists
+        if agent.logo_url:
+            spaces_service.delete_image(agent.logo_url)
+        
+        # Upload new logo
+        folder = f"agents/{agent.slug}"
+        filename = "logo.png"
+        
+        full_url, thumbnail_url, metadata = spaces_service.upload_image(
+            file_data=file_data,
+            folder=folder,
+            filename=filename,
+            content_type=photo.content_type,
+            max_size=(400, 150)  # Small logo
+        )
+        
+        # Update agent record
+        agent.logo_url = full_url
+        await db.commit()
+        
+        return {
+            "success": True,
+            "logo_url": full_url,
+            "thumbnail_url": thumbnail_url,
+            "message": "Logo updated successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload logo: {str(e)}")
+
+
+@router.delete("/me/photos/{photo_type}")
+async def delete_agent_photo(
+    photo_type: str,
+    agent: Agent = Depends(get_current_agent),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete agent photo (headshot, secondary, or logo)"""
+    
+    if photo_type not in ['headshot', 'secondary', 'logo']:
+        raise HTTPException(status_code=400, detail="Invalid photo type")
+    
+    # Get the current URL
+    url_field = f"{photo_type}_url" if photo_type != 'secondary' else "secondary_photo_url"
+    current_url = getattr(agent, url_field, None)
+    
+    if not current_url:
+        raise HTTPException(status_code=404, detail="Photo not found")
+    
+    try:
+        # Delete from Spaces
+        spaces_service.delete_image(current_url)
+        
+        # Update database
+        setattr(agent, url_field, None)
+        await db.commit()
+        
+        return {
+            "success": True,
+            "message": f"{photo_type.capitalize()} photo deleted successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete photo: {str(e)}")

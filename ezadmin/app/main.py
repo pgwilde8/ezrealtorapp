@@ -70,6 +70,10 @@ app.include_router(stripe_webhook.router, prefix="/api/v1", tags=["stripe"])
 app.include_router(checkout.router, prefix="/api/v1", tags=["checkout"])
 app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
 
+# Property Alerts
+from app.api import property_alerts
+app.include_router(property_alerts.router, prefix="/api/v1/property-alerts", tags=["property-alerts"])
+
 # Admin Routes
 app.include_router(tenants.router, prefix="/admin/tenants", tags=["admin-tenants"])
 app.include_router(plans.router, prefix="/admin/plans", tags=["admin-plans"])

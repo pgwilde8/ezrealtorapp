@@ -10,6 +10,7 @@ from .provider_credentials import ProviderCredential, ProviderType
 from .capture_page import CapturePage, CapturePageKind
 from .notification import Notification, NotifyKind
 from .plan_catalog import PlanCatalog
+from .property_alert import PropertyAlert, PropertyImage
 
 __all__ = [
     # Core models
@@ -21,6 +22,8 @@ __all__ = [
     "ProviderCredential",
     "UsageCounter",
     "PlanCatalog",
+    "PropertyAlert",
+    "PropertyImage",
     
     # Enums
     "PlanTier", 

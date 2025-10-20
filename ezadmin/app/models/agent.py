@@ -2,7 +2,7 @@
 Agent model - represents each Realtor tenant
 """
 
-from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy import Column, String, DateTime, Boolean, Integer, Text, BigInteger
 from sqlalchemy.dialects.postgresql import UUID, CITEXT
 from sqlalchemy.sql import func
 from app.utils.database import Base
@@ -49,6 +49,36 @@ class Agent(Base):
     subscription_end_date = Column(DateTime(timezone=True))
     trial_ends_at = Column(DateTime(timezone=True))
     
+    # Customization fields (branding, photos, text)
+    logo_url = Column(String(500))
+    headshot_url = Column(String(500))
+    secondary_photo_url = Column(String(500))
+    brand_primary_color = Column(String(7))
+    brand_secondary_color = Column(String(7))
+    brand_accent_color = Column(String(7))
+    buyer_page_headline = Column(String(200))
+    buyer_page_subtitle = Column(String(300))
+    valuation_page_headline = Column(String(200))
+    valuation_page_subtitle = Column(String(300))
+    title = Column(String(100))
+    license_number = Column(String(50))
+    brokerage_name = Column(String(200))
+    website_url = Column(String(500))
+    facebook_url = Column(String(500))
+    instagram_url = Column(String(500))
+    linkedin_url = Column(String(500))
+    submit_button_text = Column(String(100))
+    success_message = Column(String(300))
+    bio = Column(Text)
+    tagline = Column(String(500))
+    phone = Column(String(50))
+    public_email = Column(String(255))
+    office_address = Column(String(500))
+    youtube_url = Column(String(500))
+    years_experience = Column(Integer)
+    sales_volume = Column(BigInteger)
+    total_transactions = Column(Integer)
+    
     def __repr__(self):
         return f"<Agent(email='{self.email}', slug='{self.slug}', plan='{self.plan_tier}')>"
     
@@ -67,3 +97,6 @@ class Agent(Base):
     def full_name(self):
         """Full name property for compatibility"""
         return self.name
+    
+    def __repr__(self):
+        return f"<Agent(id={self.id}, name='{self.name}', slug='{self.slug}')>"
