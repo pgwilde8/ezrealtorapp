@@ -3,7 +3,7 @@ Lead model - represents captured leads
 """
 
 from sqlalchemy import Column, String, DateTime, Boolean, Text, Integer, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, CITEXT
+from sqlalchemy.dialects.postgresql import UUID, CITEXT, JSONB
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.utils.database import Base
@@ -20,8 +20,12 @@ class LeadStatus(str, enum.Enum):
 
 class LeadSource(str, enum.Enum):
     HOME_VALUATION = "home_valuation"
+    HOME_VALUATION_TOOL = "home_valuation_tool"
     BUYER_INTEREST = "buyer_interest"
+    BUYER_INTEREST_FORM = "buyer_interest_form"
     CONTACT = "contact"
+    CONTACT_FORM = "contact_form"
+    WEBSITE_FORM = "website_form"
     IMPORT = "import"
     API = "api"
 
@@ -52,6 +56,9 @@ class Lead(Base):
     utm_source = Column(String(100))
     utm_medium = Column(String(100))
     utm_campaign = Column(String(100))
+    ip_address = Column(String(50))
+    user_agent = Column(String(500))
+    raw_form_data = Column(JSONB)  # Store complete form submission
     
     # AI Analysis
     ai_summary = Column(Text)

@@ -49,10 +49,11 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # Add CSP header to allow AlpineJS (requires unsafe-eval)
         response.headers["Content-Security-Policy"] = (
             "default-src 'self' http: https: data: blob:; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://js.stripe.com; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://js.stripe.com https://static.cloudflareinsights.com; "
             "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: https:; "
-            "font-src 'self' data: https://cdnjs.cloudflare.com;"
+            "font-src 'self' data: https://cdnjs.cloudflare.com; "
+            "connect-src 'self' https://cloudflareinsights.com;"
         )
         
         return response

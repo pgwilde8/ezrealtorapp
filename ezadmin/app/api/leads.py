@@ -46,6 +46,9 @@ class LeadCreateRequest(BaseModel):
     important_features: Optional[str] = None
     timeline: Optional[str] = None
     
+    # Contact form (for general inquiries)
+    message: Optional[str] = None
+    
     # Additional metadata
     metadata: Optional[Dict[str, Any]] = {}
     utm_source: Optional[str] = None
@@ -89,16 +92,33 @@ async def create_lead(
     
     # Get tenant context
     tenant_slug = getattr(request.state, 'tenant_slug', None)
+    host = request.headers.get("host", "")
+    
+    # Log for debugging
+    print(f"[LEAD CREATE] Host: {host}, Tenant slug from state: {tenant_slug}")
+    
     if not tenant_slug:
         # Fallback to require_tenant if not set by middleware
-        tenant_slug = await require_tenant(request)
+        try:
+            tenant_slug = await require_tenant(request)
+            print(f"[LEAD CREATE] Tenant slug from require_tenant: {tenant_slug}")
+        except HTTPException as e:
+            print(f"[LEAD CREATE] Failed to get tenant: {e.detail}")
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Unable to determine realtor from subdomain. Host: {host}"
+            )
     
     # Find agent by tenant slug
     result = await db.execute(select(Agent).where(Agent.slug == tenant_slug))
     agent = result.scalar_one_or_none()
     
     if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
+        print(f"[LEAD CREATE] Agent not found for slug: {tenant_slug}")
+        raise HTTPException(
+            status_code=404, 
+            detail=f"Realtor profile not found for '{tenant_slug}'. Please contact support."
+        )
     
     # Determine lead source based on lead_type
     lead_source = LeadSource.WEBSITE_FORM
@@ -106,27 +126,46 @@ async def create_lead(
         lead_source = LeadSource.HOME_VALUATION_TOOL
     elif lead_data.lead_type == 'buyer_interest':
         lead_source = LeadSource.BUYER_INTEREST_FORM
+    elif lead_data.lead_type == 'contact_form':
+        lead_source = LeadSource.CONTACT_FORM
+    
+    # Determine message content based on lead type
+    message_content = None
+    if lead_data.lead_type == 'contact_form':
+        message_content = lead_data.message
+    else:
+        message_content = lead_data.important_features or lead_data.recent_improvements
     
     # Create lead record
-    lead = Lead(
-        agent_id=agent.id,
-        full_name=lead_data.full_name,
-        email=lead_data.email,
-        phone_e164=lead_data.phone,  # Will be normalized by AI processor
-        source=lead_source,
-        address_line=lead_data.property_address,
-        message=lead_data.important_features or lead_data.recent_improvements,
-        utm_source=lead_data.utm_source,
-        utm_medium=lead_data.utm_medium,
-        utm_campaign=lead_data.utm_campaign,
-        ip_address=request.client.host,
-        user_agent=request.headers.get("user-agent"),
-        raw_form_data=lead_data.dict()
-    )
-    
-    db.add(lead)
-    await db.commit()
-    await db.refresh(lead)
+    try:
+        lead = Lead(
+            agent_id=agent.id,
+            full_name=lead_data.full_name,
+            email=lead_data.email,
+            phone_e164=lead_data.phone,  # Will be normalized by AI processor
+            source=lead_source,
+            address_line=lead_data.property_address,
+            message=message_content,
+            utm_source=lead_data.utm_source,
+            utm_medium=lead_data.utm_medium,
+            utm_campaign=lead_data.utm_campaign,
+            ip_address=request.client.host if hasattr(request, 'client') and request.client else None,
+            user_agent=request.headers.get("user-agent"),
+            raw_form_data=lead_data.dict()
+        )
+        
+        db.add(lead)
+        await db.commit()
+        await db.refresh(lead)
+        print(f"[LEAD CREATE] Successfully created lead {lead.id} for agent {agent.slug}")
+    except Exception as db_error:
+        await db.rollback()
+        print(f"[LEAD CREATE] Database error: {str(db_error)}")
+        print(f"[LEAD CREATE] Error type: {type(db_error).__name__}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to save lead. This may indicate a database migration is needed. Error: {str(db_error)[:100]}"
+        )
     
     # Queue AI processing and notifications
     background_tasks.add_task(process_lead_with_ai, str(lead.id), agent.id, lead_data.dict())

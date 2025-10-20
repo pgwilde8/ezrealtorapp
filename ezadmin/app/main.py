@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import API routers
-from app.api import leads, agents, domains, billing, providers, customization, stripe_webhook, checkout, auth
+from app.api import leads, agents, domains, billing, providers, customization, stripe_webhook, checkout, auth, chat
 from app.api.admin import tenants, plans, webhooks, dashboard
 from app.middleware.tenant_resolver import TenantMiddleware
 from app.utils.database import engine, create_tables, get_db
@@ -68,6 +68,7 @@ app.include_router(providers.router, prefix="/api/v1/providers", tags=["provider
 app.include_router(customization.router, prefix="/api/v1", tags=["customization"])
 app.include_router(stripe_webhook.router, prefix="/api/v1", tags=["stripe"])
 app.include_router(checkout.router, prefix="/api/v1", tags=["checkout"])
+app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
 
 # Admin Routes
 app.include_router(tenants.router, prefix="/admin/tenants", tags=["admin-tenants"])
@@ -77,9 +78,11 @@ app.include_router(dashboard.router, prefix="/admin", tags=["admin-dashboard"])
 
 # Root routes
 @app.get("/")
-async def homepage(request: Request):
-    """Marketing homepage or login page based on subdomain"""
-    from app.middleware.auth import is_login_subdomain
+async def homepage(request: Request, db: AsyncSession = Depends(get_db)):
+    """Serve appropriate homepage based on subdomain"""
+    from app.middleware.auth import is_login_subdomain, get_agent_slug_from_host
+    from sqlalchemy import select
+    from app.models.agent import Agent
     
     host = request.headers.get("host", "")
     
@@ -87,7 +90,21 @@ async def homepage(request: Request):
     if is_login_subdomain(host):
         return templates.TemplateResponse("auth/simple_login.html", {"request": request})
     
-    # Otherwise serve the marketing homepage
+    # Check if this is an agent subdomain
+    agent_slug = get_agent_slug_from_host(host)
+    if agent_slug:
+        # Load agent data
+        result = await db.execute(select(Agent).where(Agent.slug == agent_slug))
+        agent = result.scalar_one_or_none()
+        
+        if agent:
+            # Serve agent's personal landing page
+            return templates.TemplateResponse("agent_landing.html", {
+                "request": request,
+                "agent": agent
+            })
+    
+    # Main domain (ezrealtor.app) - serve marketing homepage
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/dashboard")
