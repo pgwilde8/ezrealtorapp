@@ -226,9 +226,9 @@ async def upload_headshot(
     # Read file data
     file_data = await photo.read()
     
-    # Validate file size (5MB max for profile photos)
-    if len(file_data) > 5 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Image must be less than 5MB")
+    # Validate file size (2MB max for profile photos)
+    if len(file_data) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image must be less than 2MB")
     
     try:
         # Delete old headshot if exists
@@ -292,9 +292,9 @@ async def upload_secondary_photo(
     # Read file data
     file_data = await photo.read()
     
-    # Validate file size
-    if len(file_data) > 5 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="Image must be less than 5MB")
+    # Validate file size (2MB max for About section photos)
+    if len(file_data) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Image must be less than 2MB")
     
     try:
         # Delete old photo if exists
@@ -310,7 +310,7 @@ async def upload_secondary_photo(
             folder=folder,
             filename=filename,
             content_type=photo.content_type,
-            max_size=(1200, 900)  # Landscape format
+            max_size=(800, 600)  # Landscape format for About section
         )
         
         # Update agent record
