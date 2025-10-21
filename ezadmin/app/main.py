@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import API routers
-from app.api import leads, agents, domains, billing, providers, customization, stripe_webhook, checkout, auth, chat
+from app.api import leads, agents, domains, billing, providers, customization, stripe_webhook, checkout, auth, chat, twilio
 from app.api.admin import tenants, plans, webhooks, dashboard
 from app.middleware.tenant_resolver import TenantMiddleware
 from app.utils.database import engine, create_tables, get_db
@@ -69,6 +69,13 @@ app.include_router(customization.router, prefix="/api/v1", tags=["customization"
 app.include_router(stripe_webhook.router, prefix="/api/v1", tags=["stripe"])
 app.include_router(checkout.router, prefix="/api/v1", tags=["checkout"])
 app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
+
+# Twilio Voice & SMS
+app.include_router(twilio.router, prefix="/api/v1", tags=["twilio"])
+
+# Phone Number Management
+from app.api import phone_numbers
+app.include_router(phone_numbers.router, prefix="/api/v1", tags=["phone-numbers"])
 
 # Property Alerts
 from app.api import property_alerts

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from app.models.agent import Agent, PlanTier, AgentStatus
 from app.utils.database import get_async_session
+from app.services.twilio_phone_provisioning import twilio_provisioning_service
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +110,12 @@ class StripeWebhookHandler:
                 await db.commit()
                 logger.info(f"Updated agent {agent.email} with subscription {subscription['id']}")
                 
+                # 🚀 AUTOMATIC PHONE NUMBER PROVISIONING
+                # Plans that include phone numbers: Starter, Growth, Scale, Pro
+                if plan_tier in [PlanTier.STARTER, PlanTier.GROWTH, PlanTier.SCALE, PlanTier.PRO]:
+                    phone_result = await self._auto_provision_phone_number(agent, db)
+                    logger.info(f"Phone provisioning for {agent.email}: {phone_result}")
+                
                 return {
                     "status": "success",
                     "action": "subscription_created",
@@ -155,6 +162,13 @@ class StripeWebhookHandler:
                 
                 # Handle plan change logic
                 await self._handle_plan_change(agent, old_plan, plan_tier)
+                
+                # 🚀 AUTO-PROVISION PHONE if upgrading to a plan that includes it
+                # Only provision if they don't already have one
+                if plan_tier in [PlanTier.STARTER, PlanTier.GROWTH, PlanTier.SCALE, PlanTier.PRO]:
+                    if not agent.twilio_phone_number:
+                        phone_result = await self._auto_provision_phone_number(agent, db)
+                        logger.info(f"Phone provisioning on upgrade for {agent.email}: {phone_result}")
                 
                 logger.info(f"Updated agent {agent.email} subscription: {old_plan} -> {plan_tier}")
                 
@@ -386,6 +400,67 @@ class StripeWebhookHandler:
         # Send email notification about payment requiring action
         # Include link to complete payment
         logger.info(f"Sending payment action required notification to {agent.email}")
+    
+    async def _auto_provision_phone_number(self, agent: Agent, db: AsyncSession) -> Dict[str, Any]:
+        """
+        Automatically provision a phone number for a new subscriber
+        
+        This runs when someone purchases Starter plan or above ($97/month)
+        Phone number cost is only $1.15/month, so it's included automatically!
+        """
+        try:
+            # Check if agent already has a phone number
+            if agent.twilio_phone_number:
+                logger.info(f"Agent {agent.email} already has phone number: {agent.twilio_phone_number}")
+                return {"status": "skipped", "reason": "already_has_number"}
+            
+            # Search for available numbers (try to get a local number if possible)
+            # We'll search without area code to get any available number quickly
+            available_numbers = twilio_provisioning_service.search_available_numbers(
+                area_code=None,  # Any area code
+                limit=5
+            )
+            
+            if not available_numbers or len(available_numbers) == 0:
+                logger.error(f"No available phone numbers found for {agent.email}")
+                return {"status": "error", "reason": "no_numbers_available"}
+            
+            # Purchase the first available number
+            first_number = available_numbers[0]
+            purchase_result = twilio_provisioning_service.purchase_phone_number(
+                phone_number=first_number['phone_number'],
+                agent_slug=agent.slug,
+                friendly_name=f"EZRealtor - {agent.name}"
+            )
+            
+            if not purchase_result:
+                logger.error(f"Failed to purchase phone number for {agent.email}")
+                return {"status": "error", "reason": "purchase_failed"}
+            
+            # Update agent record with phone number
+            agent.twilio_phone_number = purchase_result['phone_number']
+            agent.twilio_phone_sid = purchase_result['sid']
+            agent.twilio_phone_status = 'active'
+            agent.twilio_phone_activated_at = datetime.utcnow()
+            agent.twilio_phone_friendly_name = purchase_result['friendly_name']
+            
+            await db.commit()
+            await db.refresh(agent)
+            
+            logger.info(f"✅ AUTO-PROVISIONED phone {purchase_result['phone_number']} for {agent.email}")
+            
+            # TODO: Send welcome email with phone number
+            # await self._send_phone_number_welcome_email(agent)
+            
+            return {
+                "status": "success",
+                "phone_number": purchase_result['phone_number'],
+                "monthly_cost": 1.15
+            }
+            
+        except Exception as e:
+            logger.error(f"Error auto-provisioning phone for {agent.email}: {e}")
+            return {"status": "error", "reason": str(e)}
 
 # Global handler instance
 webhook_handler = StripeWebhookHandler()

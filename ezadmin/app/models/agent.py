@@ -49,6 +49,13 @@ class Agent(Base):
     subscription_end_date = Column(DateTime(timezone=True))
     trial_ends_at = Column(DateTime(timezone=True))
     
+    # Twilio phone number fields
+    twilio_phone_number = Column(String(20), unique=True, index=True)  # E.164 format: +17165551234
+    twilio_phone_sid = Column(String(100), unique=True)  # Twilio phone number SID
+    twilio_phone_status = Column(String(20))  # active, pending, cancelled, porting
+    twilio_phone_activated_at = Column(DateTime(timezone=True))
+    twilio_phone_friendly_name = Column(String(200))
+    
     # Customization fields (branding, photos, text)
     logo_url = Column(String(500))
     headshot_url = Column(String(500))
