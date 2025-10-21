@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - EZRealtor.app | Questions from Real Estate Agents</title>
+    <meta name="description" content="Frequently asked questions about EZRealtor.app - AI-powered lead generation for real estate agents.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js for accordion -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <a href="/" class="text-2xl font-bold text-indigo-600">EZRealtor.app</a>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="/#features" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Features</a>
+                    <a href="/pricing" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Pricing</a>
+                    <a href="/faq" class="text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">FAQ</a>
+                    <a href="https://login.ezrealtor.app" class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium">Login</a>
+                    <a href="/pricing" class="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-md text-sm font-medium">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient text-white py-16">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h1>
+            <p class="text-xl text-indigo-100">Everything you need to know about EZRealtor.app</p>
+        </div>
+    </section>
+
+    <!-- FAQ Content -->
+    <section class="py-16">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Getting Started -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">🚀</span>
+                    Getting Started
+                </h2>
+                
+                <div class="space-y-4" x-data="{ open: null }">
+                    <!-- Question 1 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 1 ? null : 1" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">How quickly can I get my website live?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 1}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 1" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Your personalized website goes live in under 5 minutes! Just sign up, choose your subdomain (like <strong>yourname.ezrealtor.app</strong>), and your site is ready to capture leads. You can customize colors, add your headshot, and connect your phone/email right away.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 2 ? null : 2" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Do I need any technical skills to use this?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 2}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 2" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Absolutely not! EZRealtor.app is designed for real estate agents, not tech experts. Everything is point-and-click. Upload your photo, pick your colors, and share your link. No coding, no hosting setup, no website builder confusion.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 3 ? null : 3" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">What's included in the free trial?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 3}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 3" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">You get full access to all features for 14 days - no credit card required! This includes your personalized website, AI lead scoring, instant notifications, and up to 50 leads. It's a real trial with zero limitations so you can see exactly how it works for your business.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features & Capabilities -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">⚡</span>
+                    Features & Capabilities
+                </h2>
+                
+                <div class="space-y-4" x-data="{ open: null }">
+                    <!-- Question 4 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 4 ? null : 4" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">How does the AI lead scoring work?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 4}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 4" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600 mb-3">Our AI analyzes every lead submission in real-time, looking at factors like:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 ml-4">
+                                <li>Urgency signals (timeline, current situation)</li>
+                                <li>Financial readiness (pre-approval status, budget clarity)</li>
+                                <li>Motivation level (detail in their responses)</li>
+                                <li>Buyer/seller intent strength</li>
+                            </ul>
+                            <p class="text-gray-600 mt-3">Leads are scored 0-100 and labeled as HOT (80+), WARM (50-79), or COLD (&lt;50) so you know who to call first.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 5 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 5 ? null : 5" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Can I use my own domain name?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 5}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 5" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Yes! On the <strong>Growth plan ($147/month)</strong> and higher, you can connect your own custom domain (like <strong>www.yourname.com</strong>). We provide simple DNS instructions, and your custom domain is usually live within 30 minutes. You'll keep your free subdomain too!</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 6 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 6 ? null : 6" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">How do I get notified when leads come in?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 6}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 6" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600 mb-3">You get instant notifications via:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 ml-4">
+                                <li><strong>Email</strong> - Full lead details sent to your inbox immediately</li>
+                                <li><strong>SMS Text</strong> - Get hot lead alerts on your phone (Pro plan)</li>
+                                <li><strong>Dashboard</strong> - All leads visible in your account with AI insights</li>
+                            </ul>
+                            <p class="text-gray-600 mt-3">You'll never miss a lead, and hot leads get priority notifications so you can call them first.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 7 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 7 ? null : 7" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Can I customize the look and feel of my site?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 7}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 7" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Absolutely! You can customize:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 ml-4 mt-2">
+                                <li>Brand colors (primary, secondary, accent)</li>
+                                <li>Your headshot and about section photo</li>
+                                <li>Your logo</li>
+                                <li>Page headlines and messaging</li>
+                                <li>Social media links</li>
+                                <li>Contact information</li>
+                            </ul>
+                            <p class="text-gray-600 mt-3">Changes appear instantly on your live site - no waiting, no publishing delays.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 8 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 8 ? null : 8" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">What lead capture forms are included?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 8}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 8" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600 mb-3">Your website includes multiple lead capture tools:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 ml-4">
+                                <li><strong>Home Valuation Tool</strong> - Capture seller leads with instant home value estimates</li>
+                                <li><strong>Buyer Interest Form</strong> - Detailed buyer questionnaire with budget/preferences</li>
+                                <li><strong>Property Alert Signup</strong> - Email list for new listings</li>
+                                <li><strong>Mortgage Calculator</strong> - Monthly payment calculator that captures leads</li>
+                                <li><strong>Contact Form</strong> - Simple contact form on every page</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing & Plans -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">💰</span>
+                    Pricing & Plans
+                </h2>
+                
+                <div class="space-y-4" x-data="{ open: null }">
+                    <!-- Question 9 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 9 ? null : 9" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">What happens after my free trial ends?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 9}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 9" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">After 14 days, you can choose a paid plan or your account will pause. Your website stays live but lead capture stops until you upgrade. All your existing leads and data are saved, so nothing is lost. You can upgrade anytime to reactivate everything instantly.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 10 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 10 ? null : 10" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">What's the difference between plans?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 10}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 10" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600 mb-3"><strong>Starter ($47/mo)</strong> - Perfect for new agents:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 ml-4 mb-4">
+                                <li>100 leads/month</li>
+                                <li>Email notifications</li>
+                                <li>AI lead scoring</li>
+                                <li>Basic customization</li>
+                            </ul>
+                            <p class="text-gray-600 mb-3"><strong>Growth ($147/mo)</strong> - For active agents:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 ml-4 mb-4">
+                                <li>500 leads/month</li>
+                                <li>SMS notifications</li>
+                                <li>Custom domain</li>
+                                <li>Advanced AI insights</li>
+                                <li>Property alerts (email 50 listings/month)</li>
+                            </ul>
+                            <p class="text-gray-600 mb-3"><strong>Pro ($297/mo)</strong> - For top producers:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 ml-4">
+                                <li>Unlimited leads</li>
+                                <li>Priority SMS alerts</li>
+                                <li>CRM integration</li>
+                                <li>Unlimited property alerts with SMS</li>
+                                <li>Priority support</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Question 11 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 11 ? null : 11" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Can I cancel anytime?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 11}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 11" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Yes! There are no contracts or commitments. Cancel anytime from your dashboard with one click. You'll keep access through the end of your billing period, and you can export all your leads before canceling. We're confident you'll love it, but we want you to stay because it works, not because you're locked in.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 12 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 12 ? null : 12" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Do you offer discounts for annual billing?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 12}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 12" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Yes! Save 2 months when you pay annually. Contact us after your trial to switch to annual billing and get the discount.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical & Integration -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">🔧</span>
+                    Technical & Integration
+                </h2>
+                
+                <div class="space-y-4" x-data="{ open: null }">
+                    <!-- Question 13 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 13 ? null : 13" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Does it work on mobile?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 13}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 13" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Absolutely! Your website is fully responsive and looks perfect on phones, tablets, and desktops. Most leads come from mobile devices, so we've optimized everything for touchscreens. Your dashboard is mobile-friendly too, so you can check leads on the go.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 14 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 14 ? null : 14" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Can I export my leads?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 14}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 14" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Yes! Export all your leads to CSV format anytime. Your data is yours - we never lock you in. The export includes all lead information, AI scores, timestamps, and notes. Perfect for importing into your CRM or for your own records.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 15 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 15 ? null : 15" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Does it integrate with my CRM?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 15}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 15" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">CRM integration is available on the <strong>Pro plan</strong>. We currently support Zapier webhooks, which connect to 5,000+ apps including Follow Up Boss, LionDesk, KvCORE, Salesforce, and more. Coming soon: direct integrations with popular real estate CRMs.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 16 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 16 ? null : 16" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Is my data secure?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 16}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 16" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Yes! We take security seriously:</p>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1 ml-4 mt-2">
+                                <li>All data encrypted in transit (SSL/TLS)</li>
+                                <li>Encrypted storage for all lead information</li>
+                                <li>Daily automated backups</li>
+                                <li>SOC 2 compliant infrastructure</li>
+                                <li>GDPR and CCPA compliant</li>
+                            </ul>
+                            <p class="text-gray-600 mt-3">Your leads' information is protected with bank-level security.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support -->
+            <div class="mb-12">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">💬</span>
+                    Support
+                </h2>
+                
+                <div class="space-y-4" x-data="{ open: null }">
+                    <!-- Question 17 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 17 ? null : 17" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">What kind of support do you offer?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 17}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 17" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">All plans include email support with response within 24 hours. Pro plan members get priority support with faster response times and phone support. We also have an extensive help center with video tutorials, setup guides, and best practices.</p>
+                        </div>
+                    </div>
+
+                    <!-- Question 18 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <button @click="open = open === 18 ? null : 18" class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50">
+                            <span class="font-semibold text-gray-900">Do you offer training or onboarding?</span>
+                            <svg class="w-5 h-5 text-indigo-600 transform transition-transform" :class="{'rotate-180': open === 18}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open === 18" x-collapse class="px-6 pb-4">
+                            <p class="text-gray-600">Yes! When you sign up, you'll get access to our onboarding email series with video tutorials. We cover setup, customization, sharing your website, and best practices for converting leads. The platform is intuitive, but we're here to help you succeed!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-center text-white">
+                <h2 class="text-3xl font-bold mb-4">Still Have Questions?</h2>
+                <p class="text-xl mb-6 text-indigo-100">We're here to help! Start your free trial or get in touch.</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="/pricing" class="bg-white text-indigo-600 hover:bg-indigo-50 px-8 py-3 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                        Start Free Trial →
+                    </a>
+                    <a href="/contact" class="border-2 border-white text-white hover:bg-white hover:text-indigo-600 px-8 py-3 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition">
+                        Contact Us
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">EZRealtor.app</h3>
+                    <p class="text-gray-400">AI-powered lead generation for modern real estate agents.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Product</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/#features" class="hover:text-white">Features</a></li>
+                        <li><a href="/pricing" class="hover:text-white">Pricing</a></li>
+                        <li><a href="/faq" class="hover:text-white">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/contact" class="hover:text-white">Contact</a></li>
+                        <li><a href="https://login.ezrealtor.app" class="hover:text-white">Login</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Legal</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="/privacy" class="hover:text-white">Privacy Policy</a></li>
+                        <li><a href="/terms" class="hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 EZRealtor.app. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+

@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://ezrealtor.app/sitemap.xml
+
+# Crawl-delay for polite bots
+Crawl-delay: 1
+
+# Disallow admin and API endpoints from indexing
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /customize
+Disallow: /billing
+
+# Allow public pages
+Allow: /pricing
+Allow: /faq
+Allow: /blog
+Allow: /privacy
+Allow: /terms
+Allow: /contact
+

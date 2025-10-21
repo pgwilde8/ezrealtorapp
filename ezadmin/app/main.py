@@ -230,6 +230,38 @@ async def pricing_page(request: Request):
     """Pricing plans page"""
     return templates.TemplateResponse("pricing.html", {"request": request})
 
+@app.get("/faq")
+async def faq_page(request: Request):
+    """Frequently Asked Questions page"""
+    return templates.TemplateResponse("FAQ.html", {"request": request})
+
+@app.get("/blog")
+async def blog_page(request: Request):
+    """Blog homepage with articles"""
+    return templates.TemplateResponse("blog.html", {"request": request})
+
+@app.get("/privacy")
+async def privacy_page(request: Request):
+    """Privacy Policy page"""
+    return templates.TemplateResponse("privacy-policy.html", {"request": request})
+
+@app.get("/terms")
+async def terms_page(request: Request):
+    """Terms of Service page"""
+    return templates.TemplateResponse("terms-of-service.html", {"request": request})
+
+@app.get("/sitemap.xml")
+async def sitemap(request: Request):
+    """XML Sitemap for search engines"""
+    from fastapi.responses import Response
+    return templates.TemplateResponse("sitemap.xml", {"request": request}, media_type="application/xml")
+
+@app.get("/robots.txt")
+async def robots_txt():
+    """Robots.txt file for search engine crawlers"""
+    from fastapi.responses import FileResponse
+    return FileResponse("app/static/robots.txt", media_type="text/plain")
+
 @app.get("/checkout")
 async def checkout_redirect(request: Request, plan: str = "starter"):
     """Handle checkout requests and redirect to Stripe"""
