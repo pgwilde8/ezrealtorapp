@@ -115,9 +115,10 @@ class SpacesService:
                 CacheControl='max-age=31536000'
             )
             
-            # Generate URLs
-            full_url = f"{self.cdn_endpoint}/{full_path}"
-            thumbnail_url = f"{self.cdn_endpoint}/{thumbnail_path}"
+            # Generate URLs (use direct endpoint for now, not CDN)
+            direct_endpoint = f"https://{self.bucket_name}.{self.region}.digitaloceanspaces.com"
+            full_url = f"{direct_endpoint}/{full_path}"
+            thumbnail_url = f"{direct_endpoint}/{thumbnail_path}"
             
             # Update metadata with file sizes
             metadata["file_size"] = len(optimized_data)

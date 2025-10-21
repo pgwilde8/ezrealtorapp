@@ -201,11 +201,23 @@ async def check_slug_availability(
 
 @router.post("/me/upload-headshot")
 async def upload_headshot(
+    request: Request,
     photo: UploadFile = File(...),
-    agent: Agent = Depends(get_current_agent),
     db: AsyncSession = Depends(get_db)
 ):
-    """Upload agent profile headshot photo"""
+    """Upload agent profile headshot photo (tenant-based auth)"""
+    
+    # Get agent from tenant slug
+    tenant_slug = getattr(request.state, 'tenant_slug', None)
+    logger.info(f"[UPLOAD HEADSHOT] tenant_slug: {tenant_slug}")
+    
+    if not tenant_slug:
+        raise HTTPException(status_code=401, detail="Agent context required")
+    
+    agent_result = await db.execute(select(Agent).where(Agent.slug == tenant_slug))
+    agent = agent_result.scalar_one_or_none()
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
     
     # Validate file type
     if not photo.content_type.startswith('image/'):
@@ -239,6 +251,8 @@ async def upload_headshot(
         agent.headshot_url = full_url
         await db.commit()
         
+        logger.info(f"[UPLOAD HEADSHOT] Success! URL: {full_url}")
+        
         return {
             "success": True,
             "headshot_url": full_url,
@@ -247,16 +261,29 @@ async def upload_headshot(
         }
         
     except Exception as e:
+        logger.error(f"[UPLOAD HEADSHOT] Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to upload photo: {str(e)}")
 
 
 @router.post("/me/upload-secondary-photo")
 async def upload_secondary_photo(
+    request: Request,
     photo: UploadFile = File(...),
-    agent: Agent = Depends(get_current_agent),
     db: AsyncSession = Depends(get_db)
 ):
-    """Upload secondary photo for About section"""
+    """Upload secondary photo for About section (tenant-based auth)"""
+    
+    # Get agent from tenant slug
+    tenant_slug = getattr(request.state, 'tenant_slug', None)
+    logger.info(f"[UPLOAD SECONDARY] tenant_slug: {tenant_slug}")
+    
+    if not tenant_slug:
+        raise HTTPException(status_code=401, detail="Agent context required")
+    
+    agent_result = await db.execute(select(Agent).where(Agent.slug == tenant_slug))
+    agent = agent_result.scalar_one_or_none()
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
     
     # Validate file type
     if not photo.content_type.startswith('image/'):
@@ -290,6 +317,8 @@ async def upload_secondary_photo(
         agent.secondary_photo_url = full_url
         await db.commit()
         
+        logger.info(f"[UPLOAD SECONDARY] Success! URL: {full_url}")
+        
         return {
             "success": True,
             "secondary_photo_url": full_url,
@@ -298,6 +327,7 @@ async def upload_secondary_photo(
         }
         
     except Exception as e:
+        logger.error(f"[UPLOAD SECONDARY] Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to upload photo: {str(e)}")
 
 
