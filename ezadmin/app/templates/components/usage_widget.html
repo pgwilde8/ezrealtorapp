@@ -1,0 +1,161 @@
+<!-- Usage Stats Widget Component -->
+<div x-data="usageWidget()" x-init="loadUsage()" class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+            Plan Usage
+        </h3>
+        <span class="text-xs text-gray-500">Resets: <span x-text="formatResetDate(usage.reset_date)"></span></span>
+    </div>
+    
+    <div x-show="loading" class="text-center py-4">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+    </div>
+    
+    <div x-show="!loading" class="space-y-4">
+        <!-- Voice Minutes -->
+        <div>
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">
+                    <i class="fas fa-phone text-blue-600 mr-1"></i>
+                    Voice Minutes
+                </span>
+                <span class="text-sm font-semibold" x-text="`${usage.voice_minutes?.current || 0} / ${usage.voice_minutes?.limit || 0}`"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full transition-all duration-300"
+                     :class="{
+                         'bg-green-500': (usage.voice_minutes?.percentage || 0) < 70,
+                         'bg-yellow-500': (usage.voice_minutes?.percentage || 0) >= 70 && (usage.voice_minutes?.percentage || 0) < 90,
+                         'bg-red-500': (usage.voice_minutes?.percentage || 0) >= 90
+                     }"
+                     :style="`width: ${Math.min(usage.voice_minutes?.percentage || 0, 100)}%`">
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1" x-text="`${(usage.voice_minutes?.percentage || 0).toFixed(1)}% used`"></p>
+        </div>
+        
+        <!-- SMS Messages -->
+        <div>
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">
+                    <i class="fas fa-sms text-green-600 mr-1"></i>
+                    SMS Messages
+                </span>
+                <span class="text-sm font-semibold" x-text="`${usage.sms?.current || 0} / ${usage.sms?.limit || 0}`"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full transition-all duration-300"
+                     :class="{
+                         'bg-green-500': (usage.sms?.percentage || 0) < 70,
+                         'bg-yellow-500': (usage.sms?.percentage || 0) >= 70 && (usage.sms?.percentage || 0) < 90,
+                         'bg-red-500': (usage.sms?.percentage || 0) >= 90
+                     }"
+                     :style="`width: ${Math.min(usage.sms?.percentage || 0, 100)}%`">
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1" x-text="`${(usage.sms?.percentage || 0).toFixed(1)}% used`"></p>
+        </div>
+        
+        <!-- Emails -->
+        <div>
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">
+                    <i class="fas fa-envelope text-purple-600 mr-1"></i>
+                    Emails
+                </span>
+                <span class="text-sm font-semibold" x-text="`${usage.email?.current || 0} / ${usage.email?.limit || 0}`"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full transition-all duration-300"
+                     :class="{
+                         'bg-green-500': (usage.email?.percentage || 0) < 70,
+                         'bg-yellow-500': (usage.email?.percentage || 0) >= 70 && (usage.email?.percentage || 0) < 90,
+                         'bg-red-500': (usage.email?.percentage || 0) >= 90
+                     }"
+                     :style="`width: ${Math.min(usage.email?.percentage || 0, 100)}%`">
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1" x-text="`${(usage.email?.percentage || 0).toFixed(1)}% used`"></p>
+        </div>
+        
+        <!-- Voicemail Transcriptions -->
+        <div>
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">
+                    <i class="fas fa-voicemail text-orange-600 mr-1"></i>
+                    Voicemail Transcriptions
+                </span>
+                <span class="text-sm font-semibold" x-text="`${usage.voicemail?.current || 0} / ${usage.voicemail?.limit || 0}`"></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full transition-all duration-300"
+                     :class="{
+                         'bg-green-500': (usage.voicemail?.percentage || 0) < 70,
+                         'bg-yellow-500': (usage.voicemail?.percentage || 0) >= 70 && (usage.voicemail?.percentage || 0) < 90,
+                         'bg-red-500': (usage.voicemail?.percentage || 0) >= 90
+                     }"
+                     :style="`width: ${Math.min(usage.voicemail?.percentage || 0, 100)}%`">
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-1" x-text="`${(usage.voicemail?.percentage || 0).toFixed(1)}% used`"></p>
+        </div>
+    </div>
+    
+    <!-- Upgrade Prompt (if approaching limits) -->
+    <div x-show="!loading && showUpgradePrompt()" class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+        <div class="flex items-start">
+            <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5 mr-2"></i>
+            <div class="flex-1 text-sm">
+                <p class="font-semibold text-yellow-800 mb-1">Approaching Limit</p>
+                <p class="text-yellow-700 mb-2">You're using over 70% of your plan. Upgrade to avoid interruptions.</p>
+                <a href="/billing" class="text-blue-600 hover:underline font-medium">View Upgrade Options →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function usageWidget() {
+    return {
+        usage: {},
+        loading: true,
+        
+        async loadUsage() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/v1/usage/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    this.usage = await response.json();
+                } else {
+                    console.error('Failed to load usage stats');
+                }
+            } catch (error) {
+                console.error('Error loading usage:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+        
+        showUpgradePrompt() {
+            const metrics = ['voice_minutes', 'sms', 'email', 'voicemail'];
+            return metrics.some(metric => {
+                const percentage = this.usage[metric]?.percentage || 0;
+                return percentage >= 70;
+            });
+        },
+        
+        formatResetDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+    }
+}
+</script>
+

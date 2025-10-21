@@ -77,6 +77,10 @@ app.include_router(twilio.router, prefix="/api/v1", tags=["twilio"])
 from app.api import phone_numbers
 app.include_router(phone_numbers.router, prefix="/api/v1", tags=["phone-numbers"])
 
+# Usage Tracking
+from app.api import usage
+app.include_router(usage.router, prefix="/api/v1", tags=["usage"])
+
 # Property Alerts
 from app.api import property_alerts
 app.include_router(property_alerts.router, prefix="/api/v1/property-alerts", tags=["property-alerts"])
@@ -119,11 +123,24 @@ async def homepage(request: Request, db: AsyncSession = Depends(get_db)):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/dashboard")
-async def agent_dashboard(request: Request):
+async def agent_dashboard(request: Request, db: AsyncSession = Depends(get_db)):
     """Agent dashboard - will authenticate via JavaScript/localStorage"""
-    # Return a page that checks localStorage for token and loads dashboard
+    from app.middleware.auth import get_agent_slug_from_host
+    from sqlalchemy import select
+    from app.models.agent import Agent
+    
+    # Get agent from subdomain
+    host = request.headers.get("host", "")
+    agent_slug = get_agent_slug_from_host(host)
+    
+    agent = None
+    if agent_slug:
+        result = await db.execute(select(Agent).where(Agent.slug == agent_slug))
+        agent = result.scalar_one_or_none()
+    
     return templates.TemplateResponse("realtor_dashboard.html", {
-        "request": request
+        "request": request,
+        "agent": agent
     })
 
 @app.get("/admin")

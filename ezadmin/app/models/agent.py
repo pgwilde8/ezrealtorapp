@@ -56,6 +56,14 @@ class Agent(Base):
     twilio_phone_activated_at = Column(DateTime(timezone=True))
     twilio_phone_friendly_name = Column(String(200))
     
+    # Usage tracking fields (for plan limits enforcement)
+    usage_voice_minutes_month = Column(Integer, default=0)  # Total voice minutes this billing month
+    usage_sms_count_month = Column(Integer, default=0)  # Total SMS sent/received this month
+    usage_email_count_month = Column(Integer, default=0)  # Total emails sent this month
+    usage_voicemail_count_month = Column(Integer, default=0)  # Total voicemail transcriptions this month
+    usage_reset_date = Column(DateTime(timezone=True), server_default=func.now())  # Next reset date
+    usage_last_warning_sent = Column(DateTime(timezone=True))  # Last usage warning timestamp
+    
     # Customization fields (branding, photos, text)
     logo_url = Column(String(500))
     headshot_url = Column(String(500))

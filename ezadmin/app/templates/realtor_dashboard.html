@@ -78,6 +78,37 @@
     <!-- Main Dashboard Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
+        <!-- New User Explainer Banner (shows when zero leads) -->
+        <div x-data="{ showBanner: true }" 
+             x-show="(stats.totalLeads === 0 || stats.totalLeads === '0') && showBanner"
+             class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-5 mb-6 shadow-sm">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-600 text-2xl mt-1"></i>
+                </div>
+                <div class="ml-4 flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                        👋 Welcome to Your Dashboard!
+                    </h3>
+                    <p class="text-gray-700 mb-3">
+                        The metrics you see below are <strong>preview placeholders</strong> to show you what your dashboard will look like. 
+                        Once you receive your <strong>first real lead</strong>, these will automatically update with your actual data.
+                    </p>
+                    <div class="bg-white rounded-lg p-3 border border-blue-200">
+                        <p class="text-sm text-gray-600 mb-2"><strong>🚀 Get started:</strong></p>
+                        <ol class="text-sm text-gray-700 space-y-1 ml-4">
+                            <li>1. <a href="/customize" class="text-blue-600 hover:underline font-medium">Customize your website</a> with your branding</li>
+                            <li>2. Share your lead capture pages (see below)</li>
+                            <li>3. Watch your real leads come in!</li>
+                        </ol>
+                    </div>
+                </div>
+                <button @click="showBanner = false" class="flex-shrink-0 ml-4 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
         <!-- Key Metrics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Total Leads -->

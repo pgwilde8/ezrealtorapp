@@ -11,6 +11,7 @@ from app.utils.database import get_db
 from app.models.agent import Agent
 from app.models.lead import Lead
 from app.services.twilio_service import twilio_service
+from app.services.usage_tracker import usage_tracker
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/twilio", tags=["twilio"])
@@ -238,6 +239,25 @@ async def handle_incoming_sms(
         # Get agent for this phone number
         agent = await get_agent_from_phone(db, To)
         
+        if agent:
+            # Check SMS usage limits (1 incoming + 1 outgoing auto-reply = 2 SMS)
+            allowed, error_msg = await usage_tracker.check_and_increment(
+                agent=agent,
+                metric="sms",
+                amount=2,  # 1 incoming + 1 auto-reply
+                db=db
+            )
+            
+            if not allowed:
+                logger.warning(f"SMS limit exceeded for {agent.slug}: {error_msg}")
+                # Return a simple message that their quota is exceeded
+                twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
+                <Response>
+                    <Message>Thank you for your message. This mailbox has reached its monthly limit. 
+                    Please try again next month or contact us directly.</Message>
+                </Response>"""
+                return Response(content=twiml, media_type="application/xml")
+        
         # Create lead from SMS
         if agent and From and Body:
             lead = Lead(
@@ -288,5 +308,52 @@ async def handle_sms_status(
     Handle SMS delivery status callback
     """
     logger.info(f"SMS status: {MessageSid} -> {MessageStatus} (to {To})")
+    return {"status": "ok"}
+
+
+@router.post("/voice/status")
+async def handle_call_status(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    CallSid: str = Form(None),
+    CallStatus: str = Form(None),
+    CallDuration: str = Form(None),
+    To: str = Form(None),
+    From: str = Form(None)
+):
+    """
+    Handle call status callback (called when call completes)
+    This is where we track actual call duration for usage limits
+    
+    Webhook URL: https://ezrealtor.app/api/v1/twilio/voice/status
+    """
+    logger.info(f"Call status: {CallSid} -> {CallStatus}, Duration: {CallDuration}s (to {To})")
+    
+    try:
+        # Only track completed calls
+        if CallStatus == "completed" and CallDuration:
+            duration_seconds = int(CallDuration)
+            duration_minutes = max(1, int(duration_seconds / 60))  # Round up to nearest minute
+            
+            # Get agent for this phone number
+            agent = await get_agent_from_phone(db, To)
+            
+            if agent:
+                # Track usage
+                allowed, error_msg = await usage_tracker.check_and_increment(
+                    agent=agent,
+                    metric="voice_minutes",
+                    amount=duration_minutes,
+                    db=db
+                )
+                
+                if not allowed:
+                    logger.warning(f"Call completed but exceeded limits: {error_msg}")
+                else:
+                    logger.info(f"Tracked {duration_minutes} voice minutes for agent {agent.slug}")
+    
+    except Exception as e:
+        logger.error(f"Error tracking call duration: {str(e)}")
+    
     return {"status": "ok"}
 
