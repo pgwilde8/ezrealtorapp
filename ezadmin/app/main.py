@@ -274,6 +274,11 @@ async def terms_page(request: Request):
     """Terms of Service page"""
     return templates.TemplateResponse("terms-of-service.html", {"request": request})
 
+@app.get("/new-sales-pitch")
+async def new_sales_pitch_page(request: Request):
+    """New sales pitch page showcasing complete marketing automation"""
+    return templates.TemplateResponse("new-sales-pitch.html", {"request": request})
+
 @app.get("/sitemap.xml")
 async def sitemap(request: Request):
     """XML Sitemap for search engines"""
