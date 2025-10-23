@@ -64,6 +64,19 @@ class Agent(Base):
     usage_reset_date = Column(DateTime(timezone=True), server_default=func.now())  # Next reset date
     usage_last_warning_sent = Column(DateTime(timezone=True))  # Last usage warning timestamp
     
+    # Facebook OAuth fields
+    facebook_connected = Column(Boolean, default=False)  # Whether Facebook is connected
+    facebook_access_token = Column(Text)  # Encrypted Facebook access token
+    facebook_token_expires_at = Column(DateTime(timezone=True))  # Token expiration
+    facebook_user_id = Column(String(100))  # Facebook user ID
+    facebook_user_name = Column(String(255))  # Facebook user name
+    facebook_business_id = Column(String(100))  # Facebook Business Manager ID
+    facebook_business_name = Column(String(255))  # Facebook Business Manager name
+    facebook_ad_account_id = Column(String(100))  # Facebook Ad Account ID
+    facebook_ad_account_name = Column(String(255))  # Facebook Ad Account name
+    facebook_page_id = Column(String(100))  # Facebook Page ID
+    facebook_page_name = Column(String(255))  # Facebook Page name
+    
     # Customization fields (branding, photos, text)
     logo_url = Column(String(500))
     headshot_url = Column(String(500))

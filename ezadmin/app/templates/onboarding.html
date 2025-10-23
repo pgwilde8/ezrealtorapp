@@ -3,103 +3,432 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Your Setup - EZRealtor.app</title>
+    <title>Welcome to EZRealtor.app - Connect Your Facebook Account</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .step-completed {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .step-current {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .step-pending {
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen" x-data="conciergeApp()">
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-4xl mx-auto px-6 py-4">
-            <h1 class="text-2xl font-bold text-blue-600">
-                <i class="fas fa-home mr-2"></i>EZRealtor.app
+<body class="bg-gray-50" x-data="onboardingFlow()">
+    <!-- Progress Bar -->
+    <div class="bg-white shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full step-completed flex items-center justify-center text-white font-bold text-sm">1</div>
+                        <span class="ml-2 text-sm font-medium text-gray-900">Payment Complete</span>
+                    </div>
+                    <div class="w-8 h-1 bg-gray-300"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full step-current flex items-center justify-center text-white font-bold text-sm">2</div>
+                        <span class="ml-2 text-sm font-medium text-gray-900">Connect Facebook</span>
+                    </div>
+                    <div class="w-8 h-1 bg-gray-300"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full step-pending flex items-center justify-center text-white font-bold text-sm">3</div>
+                        <span class="ml-2 text-sm font-medium text-gray-500">Choose Pages</span>
+                    </div>
+                    <div class="w-8 h-1 bg-gray-300"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full step-pending flex items-center justify-center text-white font-bold text-sm">4</div>
+                        <span class="ml-2 text-sm font-medium text-gray-500">Set Budget</span>
+                    </div>
+                    <div class="w-8 h-1 bg-gray-300"></div>
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full step-pending flex items-center justify-center text-white font-bold text-sm">5</div>
+                        <span class="ml-2 text-sm font-medium text-gray-500">Go Live</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient py-16">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                Welcome to EZRealtor.app! 🎉
             </h1>
+            <p class="text-xl text-indigo-200 mb-8">
+                Let's get your AI marketing partner set up in just 5 minutes
+            </p>
+            <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 max-w-2xl mx-auto">
+                <p class="text-lg mb-4">✅ Payment successful - You're all set!</p>
+                <p class="text-lg">Now let's connect your Facebook account to start generating leads automatically.</p>
+            </div>
         </div>
-    </nav>
+    </section>
 
-    <div class="max-w-4xl mx-auto px-6 py-12">
-        <div class="text-center mb-12">
-            <h1 class="text-3xl font-bold mb-4">Choose Your Concierge Plan</h1>
-            <p class="text-lg text-gray-600">We handle everything - pages, leads, calls, and meetings</p>
+    <!-- Main Onboarding Content -->
+    <section class="py-16 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Step 2: Connect Facebook -->
+            <div x-show="currentStep === 2" class="space-y-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Step 2: Connect Your Facebook Account</h2>
+                    <p class="text-xl text-gray-600 mb-8">We need permission to manage your Facebook ads. Don't worry - you'll keep full control of your ad spend.</p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-8 mb-12">
-            <!-- Concierge Plan -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 border-2"
-                 :class="selectedPlan === 'concierge' ? 'border-blue-500' : 'border-gray-200'"
-                 @click="selectedPlan = 'concierge'">
-                
-                <div class="text-center mb-6">
-                    <h3 class="text-xl font-bold mb-2">Concierge (2 Pages)</h3>
-                    <div class="text-3xl font-bold text-blue-600">$97<span class="text-lg text-gray-500">/mo</span></div>
+                <!-- Facebook Connection Card -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-8 border-2 border-blue-200">
+                    <div class="flex items-start space-x-6">
+                        <div class="flex-shrink-0">
+                            <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-4">Why We Need Facebook Access</h3>
+                            <div class="space-y-4 text-gray-700">
+                                <div class="flex items-start">
+                                    <span class="text-green-500 text-xl mr-3">✅</span>
+                                    <div>
+                                        <p class="font-semibold">Create & manage your ad campaigns</p>
+                                        <p class="text-sm text-gray-600">We'll build professional campaigns that convert leads into calls</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="text-green-500 text-xl mr-3">✅</span>
+                                    <div>
+                                        <p class="font-semibold">Optimize your ad performance</p>
+                                        <p class="text-sm text-gray-600">AI-powered optimization to get you the best results</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <span class="text-green-500 text-xl mr-3">✅</span>
+                                    <div>
+                                        <p class="font-semibold">Track conversions & ROI</p>
+                                        <p class="text-sm text-gray-600">See exactly which ads are generating the most leads</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- What You Need -->
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                    <h4 class="text-lg font-bold text-yellow-800 mb-4">📋 What You'll Need:</h4>
+                    <ul class="space-y-2 text-yellow-700">
+                        <li>• <strong>Facebook Business Manager</strong> account (free to create)</li>
+                        <li>• <strong>Facebook Ad Account</strong> with a payment method on file</li>
+                        <li>• <strong>Facebook Page</strong> (for ad creative)</li>
+                    </ul>
+                    <p class="text-sm text-yellow-600 mt-4">Don't have these? We'll guide you through creating them in 2 minutes!</p>
                 </div>
                 
-                <ul class="space-y-3 mb-6 text-sm">
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>2 AI lead capture pages</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>5,000 page views</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>300 qualified leads</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>1,000 emails + 300 SMS</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>60 voice call minutes</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Calendar integration</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>$50 spend cap included</li>
-                </ul>
+                <!-- Connect Button -->
+                <div class="text-center">
+                    <button @click="connectFacebook()" 
+                            :disabled="isConnecting"
+                            class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-12 py-4 rounded-xl text-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:transform-none">
+                        <span x-show="!isConnecting">🔗 Connect Facebook Account</span>
+                        <span x-show="isConnecting">⏳ Connecting...</span>
+                    </button>
+                    <p class="text-sm text-gray-500 mt-4">You'll be redirected to Facebook to authorize our app</p>
+                </div>
             </div>
 
-            <!-- Concierge Plus Plan -->
-            <div class="bg-white rounded-2xl shadow-lg p-8 border-2 relative"
-                 :class="selectedPlan === 'plus' ? 'border-purple-500' : 'border-gray-200'"
-                 @click="selectedPlan = 'plus'">
-                
-                <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span class="bg-purple-600 text-white px-4 py-1 rounded-full text-sm">Popular</span>
+            <!-- Step 3: Choose Lead Pages -->
+            <div x-show="currentStep === 3" class="space-y-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Step 3: Choose Your Lead Pages</h2>
+                    <p class="text-xl text-gray-600 mb-8">Pick which lead capture pages you want to promote. You can always change these later.</p>
                 </div>
                 
-                <div class="text-center mb-6">
-                    <h3 class="text-xl font-bold mb-2">Concierge Plus (4 Pages)</h3>
-                    <div class="text-3xl font-bold text-purple-600">$249<span class="text-lg text-gray-500">/mo</span></div>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Home Value -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-green-500 transition-colors cursor-pointer"
+                         :class="selectedPages.includes('home-value') ? 'border-green-500 bg-green-50' : ''"
+                         @click="togglePage('home-value')">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
+                                    <span class="text-2xl">🏡</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Home Value</h3>
+                            </div>
+                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                 :class="selectedPages.includes('home-value') ? 'border-green-500 bg-green-500' : 'border-gray-300'">
+                                <span x-show="selectedPages.includes('home-value')" class="text-white text-sm">✓</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-4">"What's my home worth?" - Perfect for seller leads</p>
+                        <div class="text-sm text-gray-500">
+                            <p>• Captures homeowners ready to sell</p>
+                            <p>• Instant property value estimates</p>
+                            <p>• High-converting seller leads</p>
+                        </div>
+                    </div>
+
+                    <!-- Find Homes -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-blue-500 transition-colors cursor-pointer"
+                         :class="selectedPages.includes('find-homes') ? 'border-blue-500 bg-blue-50' : ''"
+                         @click="togglePage('find-homes')">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                                    <span class="text-2xl">🔍</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Find Homes</h3>
+                            </div>
+                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                 :class="selectedPages.includes('find-homes') ? 'border-blue-500 bg-blue-500' : 'border-gray-300'">
+                                <span x-show="selectedPages.includes('find-homes')" class="text-white text-sm">✓</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-4">"Find your dream home" - Perfect for buyer leads</p>
+                        <div class="text-sm text-gray-500">
+                            <p>• Captures motivated buyers</p>
+                            <p>• Preference & budget collection</p>
+                            <p>• Pre-qualified buyer leads</p>
+                        </div>
+                    </div>
+
+                    <!-- Listing Alerts -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-purple-500 transition-colors cursor-pointer"
+                         :class="selectedPages.includes('listing-alerts') ? 'border-purple-500 bg-purple-50' : ''"
+                         @click="togglePage('listing-alerts')">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mr-4">
+                                    <span class="text-2xl">🔔</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Listing Alerts</h3>
+                            </div>
+                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                 :class="selectedPages.includes('listing-alerts') ? 'border-purple-500 bg-purple-500' : 'border-gray-300'">
+                                <span x-show="selectedPages.includes('listing-alerts')" class="text-white text-sm">✓</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-4">"Get notified of new listings" - Build buyer lists</p>
+                        <div class="text-sm text-gray-500">
+                            <p>• Engaged prospect building</p>
+                            <p>• Email list growth</p>
+                            <p>• Long-term nurturing</p>
+                        </div>
+                    </div>
+
+                    <!-- Mortgage Calculator -->
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6 hover:border-orange-500 transition-colors cursor-pointer"
+                         :class="selectedPages.includes('mortgage-calculator') ? 'border-orange-500 bg-orange-50' : ''"
+                         @click="togglePage('mortgage-calculator')">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mr-4">
+                                    <span class="text-2xl">💰</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900">Mortgage Calculator</h3>
+                            </div>
+                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center"
+                                 :class="selectedPages.includes('mortgage-calculator') ? 'border-orange-500 bg-orange-500' : 'border-gray-300'">
+                                <span x-show="selectedPages.includes('mortgage-calculator')" class="text-white text-sm">✓</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-4">"What's my payment?" - Qualify buyers</p>
+                        <div class="text-sm text-gray-500">
+                            <p>• Financial qualification</p>
+                            <p>• Payment estimates</p>
+                            <p>• Ready-to-buy leads</p>
+                        </div>
+                    </div>
                 </div>
                 
-                <ul class="space-y-3 mb-6 text-sm">
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>4 AI lead capture pages</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>20,000 page views</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>1,500 qualified leads</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>5,000 emails + 1,500 SMS</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>300 voice call minutes</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>Priority support + 99.9% SLA</li>
-                    <li><i class="fas fa-check text-green-500 mr-2"></i>$250 spend cap included</li>
-                </ul>
+                <div class="text-center">
+                    <button @click="nextStep()" 
+                            :disabled="selectedPages.length === 0"
+                            class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white px-12 py-4 rounded-xl text-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:transform-none">
+                        Continue with <span x-text="selectedPages.length"></span> page<span x-show="selectedPages.length !== 1">s</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Set Budget -->
+            <div x-show="currentStep === 4" class="space-y-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Step 4: Set Your Monthly Ad Budget</h2>
+                    <p class="text-xl text-gray-600 mb-8">How much do you want to spend on Facebook ads each month? You can change this anytime.</p>
+                </div>
+
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-8">
+                        <div class="text-center mb-8">
+                            <label class="text-2xl font-bold text-gray-900 mb-4 block">Monthly Ad Budget</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl text-gray-500">$</span>
+                                <input type="number" 
+                                       x-model="monthlyBudget"
+                                       min="500" 
+                                       max="5000" 
+                                       step="100"
+                                       class="w-full text-4xl font-bold text-center border-2 border-gray-300 rounded-xl py-4 pl-12 pr-4 focus:border-indigo-500 focus:outline-none">
+                            </div>
+                            <p class="text-gray-600 mt-2">You'll pay Facebook directly - we never touch your ad spend</p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4 mb-8">
+                            <button @click="monthlyBudget = 500" 
+                                    :class="monthlyBudget == 500 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="py-3 px-4 rounded-lg font-semibold transition-colors">
+                                $500
+                            </button>
+                            <button @click="monthlyBudget = 1000" 
+                                    :class="monthlyBudget == 1000 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="py-3 px-4 rounded-lg font-semibold transition-colors">
+                                $1,000
+                            </button>
+                            <button @click="monthlyBudget = 2000" 
+                                    :class="monthlyBudget == 2000 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="py-3 px-4 rounded-lg font-semibold transition-colors">
+                                $2,000
+                            </button>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="font-bold text-blue-900 mb-2">💡 Budget Recommendation</h4>
+                            <p class="text-blue-800 text-sm">
+                                For <span x-text="selectedPages.length"></span> lead page<span x-show="selectedPages.length !== 1">s</span>, 
+                                we recommend starting with <strong>$<span x-text="Math.max(500, selectedPages.length * 500)"></span>/month</strong> 
+                                to get enough data for optimization.
+                            </p>
+                        </div>
             </div>
         </div>
 
         <div class="text-center">
-            <button @click="startSetup()" 
-                    class="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">
-                <i class="fas fa-rocket mr-2"></i>Start My Concierge Service
+                    <button @click="nextStep()" 
+                            :disabled="monthlyBudget < 500"
+                            class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white px-12 py-4 rounded-xl text-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:transform-none">
+                        Set Budget & Continue
             </button>
         </div>
     </div>
 
-    <script>
-        function conciergeApp() {
-            return {
-                selectedPlan: 'concierge',
-                
-                async startSetup() {
-                    const response = await fetch('/api/v1/checkout/create-session', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                        },
-                        body: JSON.stringify({
-                            plan: this.selectedPlan === 'plus' ? 'concierge_plus' : 'concierge'
-                        })
-                    });
+            <!-- Step 5: Go Live -->
+            <div x-show="currentStep === 5" class="space-y-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">🎉 You're All Set!</h2>
+                    <p class="text-xl text-gray-600 mb-8">Your AI marketing partner is ready to start generating leads for you.</p>
+                </div>
 
-                    if (response.ok) {
+                <div class="bg-gradient-to-r from-green-500 to-blue-600 rounded-2xl p-8 text-white text-center">
+                    <h3 class="text-2xl font-bold mb-4">What Happens Next?</h3>
+                    <div class="grid md:grid-cols-3 gap-6 text-left">
+                        <div>
+                            <div class="text-3xl mb-2">🤖</div>
+                            <h4 class="font-bold mb-2">AI Creates Campaigns</h4>
+                            <p class="text-sm opacity-90">We'll build professional Facebook ad campaigns targeting your market</p>
+                        </div>
+                        <div>
+                            <div class="text-3xl mb-2">📱</div>
+                            <h4 class="font-bold mb-2">Leads Start Coming</h4>
+                            <p class="text-sm opacity-90">People will fill out your lead pages and get scored by our AI</p>
+                        </div>
+                        <div>
+                            <div class="text-3xl mb-2">📞</div>
+                            <h4 class="font-bold mb-2">You Get Calls</h4>
+                            <p class="text-sm opacity-90">Hot leads will call your phone - you just answer and close deals!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                    <h4 class="text-lg font-bold text-gray-900 mb-4">📋 Your Setup Summary:</h4>
+                    <div class="space-y-2 text-gray-700">
+                        <p>• <strong>Facebook Account:</strong> Connected ✅</p>
+                        <p>• <strong>Lead Pages:</strong> <span x-text="selectedPages.length"></span> selected</p>
+                        <p>• <strong>Monthly Budget:</strong> $<span x-text="monthlyBudget"></span></p>
+                        <p>• <strong>AI Lead Scoring:</strong> Active ✅</p>
+                        <p>• <strong>Phone Calls:</strong> Ready for hot leads ✅</p>
+                    </div>
+                </div>
+
+                <div class="text-center space-y-4">
+                    <button @click="goToDashboard()" 
+                            class="bg-green-600 hover:bg-green-700 text-white px-12 py-4 rounded-xl text-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                        🚀 Go to Dashboard
+                    </button>
+                    <p class="text-gray-600">Your first campaigns will be live within 15 minutes!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="text-xl font-bold mb-2">EZRealtor.app</h3>
+            <p class="text-gray-400">Your AI Marketing Partner — working while you close deals.</p>
+        </div>
+    </footer>
+
+    <script>
+        function onboardingFlow() {
+            return {
+                currentStep: 2,
+                isConnecting: false,
+                selectedPages: ['home-value'], // Default selection
+                monthlyBudget: 1000,
+
+                async connectFacebook() {
+                    this.isConnecting = true;
+                    try {
+                        // Call the Facebook connect API
+                        const response = await fetch('/api/v1/facebook/connect', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('auth_token')}` // Adjust based on your auth system
+                            }
+                        });
+                        
                         const data = await response.json();
-                        window.location.href = data.checkout_url;
+                        
+                        if (data.success) {
+                            // Redirect to Facebook OAuth
+                            window.location.href = data.authorization_url;
+                        } else {
+                            alert('Failed to start Facebook connection. Please try again.');
+                            this.isConnecting = false;
+                        }
+                    } catch (error) {
+                        console.error('Error connecting to Facebook:', error);
+                        alert('Error connecting to Facebook. Please try again.');
+                        this.isConnecting = false;
                     }
+                },
+
+                togglePage(page) {
+                    if (this.selectedPages.includes(page)) {
+                        this.selectedPages = this.selectedPages.filter(p => p !== page);
+                    } else {
+                        this.selectedPages.push(page);
+                    }
+                },
+
+                nextStep() {
+                    if (this.currentStep < 5) {
+                        this.currentStep++;
+                    }
+                },
+
+                goToDashboard() {
+                    window.location.href = '/dashboard';
                 }
             }
         }

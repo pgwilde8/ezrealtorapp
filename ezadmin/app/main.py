@@ -73,6 +73,10 @@ app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
 # Twilio Voice & SMS
 app.include_router(twilio.router, prefix="/api/v1", tags=["twilio"])
 
+# Facebook OAuth
+from app.api import facebook_oauth
+app.include_router(facebook_oauth.router, prefix="/api/v1/facebook", tags=["facebook-oauth"])
+
 # Phone Number Management
 from app.api import phone_numbers
 app.include_router(phone_numbers.router, prefix="/api/v1", tags=["phone-numbers"])
@@ -278,6 +282,21 @@ async def terms_page(request: Request):
 async def new_sales_pitch_page(request: Request):
     """New sales pitch page showcasing complete marketing automation"""
     return templates.TemplateResponse("new-sales-pitch.html", {"request": request})
+
+@app.get("/facebook-automation-sales")
+async def facebook_automation_sales_page(request: Request):
+    """Facebook ads automation sales page with sales letter format"""
+    return templates.TemplateResponse("facebook-automation-sales.html", {"request": request})
+
+@app.get("/new-sales-pitch2")
+async def new_sales_pitch2_page(request: Request):
+    """Sales letter format page for new-sales-pitch2"""
+    return templates.TemplateResponse("new-sales-pitch2.html", {"request": request})
+
+@app.get("/onboarding")
+async def onboarding_page(request: Request):
+    """Agent onboarding page"""
+    return templates.TemplateResponse("onboarding.html", {"request": request})
 
 @app.get("/sitemap.xml")
 async def sitemap(request: Request):
